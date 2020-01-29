@@ -9,11 +9,14 @@ public class Lab1 {
 
     List<Semaphore> semaphores = new ArrayList();
     private final TSimInterface tsi = TSimInterface.getInstance();
-    private final Switch north = new Switch(17, 7,true);
-    private final Switch midWest = new Switch(4, 9,false);
-    private final Switch midEast = new Switch(15, 9,true);
-    private final Switch south = new Switch(3, 11,false);
-    private final Semaphore semaphore  = new Semaphore(1);
+    private final Switch north = new Switch(17, 7, true);
+    private final Switch midWest = new Switch(4, 9, false);
+    private final Switch midEast = new Switch(15, 9, true);
+    private final Switch south = new Switch(3, 11, false);
+
+    private final Semaphore start = new Semaphore(1);
+    private final Semaphore korsning = new Semaphore(1);
+    private final Semaphore intersection2 = new Semaphore(1);
 
     public Lab1(int speed1, int speed2) {
 
@@ -21,11 +24,7 @@ public class Lab1 {
 
         Thread train1 = new Train(speed1, 1, false);
         Thread train2 = new Train(speed2, 2, true);
-        try {
-            semaphore.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         // loop
         // sensorcheck
@@ -35,7 +34,6 @@ public class Lab1 {
 
 
     }
-
 
 
     private void addSemaphores(List<Semaphore> semaphores) {
@@ -50,7 +48,9 @@ public class Lab1 {
         TSimInterface tsi = TSimInterface.getInstance();
         int id;
         int speed;
+        int initialspeed;
         boolean goingNorth;
+        boolean goingForward = true;
         List<Semaphore> holdingsemaphores = new ArrayList();
         boolean ack;
 
@@ -59,11 +59,19 @@ public class Lab1 {
             this.speed = speed;
             this.id = id;
             this.goingNorth = goingNorth;
+            this.initialspeed = speed;
         }
 
         @Override
         public void run() {
-
+            if (id == 2) {
+                try {
+                    start.acquire();
+                    System.out.println("Start acquired!");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             try {
                 tsi.setSpeed(id, speed);
                 while (!this.isInterrupted()) {
@@ -75,34 +83,68 @@ public class Lab1 {
             }
         }
 
-        private void updateSensors() {
+        private  void updateSensors() {
 
             try {
                 SensorEvent se = tsi.getSensor(this.id);
-                if (passedSensor(se,14,9)) {
-                    updateSwitch(midEast);
+                if (passedSensor(se, 14, 9)) {
+                    updateSwitch(midEast, true);
                 }
                 if (passedSensor(se, 16, 7)) {
-                    updateSwitch(north);
+                    updateSwitch(north, true);
                 }
 
-                if(passedSensor(se,16,9) ){
-                    updateSwitch(midEast);
+                if (passedSensor(se, 16, 9)) {
+                    updateSwitch(midEast, true);
                 }
-                if(passedSensor(se,2,12) ){
-                    updateSwitch(south);
-                    
+                if (passedSensor(se, 2, 11)) {
+                    if (!start.tryAcquire()) {
+                        south.setSwitchRight();
+                    } else {
+                        updateSwitch(south, true);
+                    }
+                }
+                if (passedSensor(se, 4, 11)) {
+                    while (!korsning.tryAcquire()) {
+                        tsi.setSpeed(this.id, 0);
+                        wait();
+                    }
+                    updateSwitch(south, true);
+                    start.release();
+                    go();
+                }
+
+                if (passedSensor(se, 3, 12)) {
+                    if (!goingNorth) {
+                        korsning.release();
+                    } else {
+                        if (!korsning.tryAcquire()) {
+                            tsi.setSpeed(this.id, 0);
+                            korsning.acquire();
+                            go();
+                        }
+                        updateSwitch(south, false);
+                    }
+                }
+
+                if (passedSensor(se, 3, 9)) {
+                    if (goingNorth) {
+                        korsning.release();
+                        updateSwitch(midWest, intersection2.tryAcquire());
+                    } else {
+                        // TODO do stuff
+                    }
                 }
                 if (passedSensor(se, 15, 5) && goingNorth) {
                     switchDirection();
                 }
-                if(passedSensor(se,16,11) && !goingNorth){
+                if (passedSensor(se, 16, 11) && !goingNorth) {
                     switchDirection();
                 }
-                if(passedSensor(se,15,13) && !goingNorth){
+                if (passedSensor(se, 15, 13) && !goingNorth) {
                     switchDirection();
                 }
-                if(passedSensor(se,14,3) && goingNorth){
+                if (passedSensor(se, 14, 3) && goingNorth) {
                     switchDirection();
                 }
 
@@ -111,12 +153,21 @@ public class Lab1 {
             }
         }
 
+        private void go() {
+            try {
+                tsi.setSpeed(this.id, goingForward ? initialspeed : -initialspeed);
+            } catch (CommandException e) {
+                e.printStackTrace();
+            }
+        }
+
         private void switchDirection() throws CommandException, InterruptedException {
-            int currentSpeed = this.speed;
             System.out.println("Current speed " + speed);
             tsi.setSpeed(this.id, 0);
             Thread.sleep(2000);
-            tsi.setSpeed(this.id, goingNorth ? -currentSpeed : currentSpeed);
+            goingForward = !goingForward;
+            go();
+            System.out.println(initialspeed);
             this.goingNorth = !goingNorth;
         }
 
@@ -124,37 +175,58 @@ public class Lab1 {
             return se.getXpos() == x && se.getYpos() == y;
         }
 
-        private void updateSwitch(Switch s) {
-            if(goingNorth){
-                updateNorthGoingSwitches(s);
-            }else{
-                updateSouthGoingSwitches(s);
+        private void updateSwitch(Switch s, boolean shortestPath) {
+            if (goingNorth) {
+                updateNorthGoingSwitches(s, shortestPath);
+            } else {
+                updateSouthGoingSwitches(s, shortestPath);
             }
         }
 
-        private void updateSouthGoingSwitches(Switch s) {
-
-            if(s.equals(north)){
+        private void updateSouthGoingSwitches(Switch s, boolean shortestPath) {
+            if (shortestPath) {
                 s.setSwitchRight();
-            }else if(s.equals(midEast)){
-                s.setSwitchRight();
-            }else if(s.equals(midWest)){
-                s.setSwitchRight();
-            }else{
-                s.setSwitchRight();
+            } else {
+                s.setSwitchLeft();
             }
+            /*
+            if (s.equals(north)) {
+
+            } else if (s.equals(midEast)) {
+                s.setSwitchRight();
+            } else if (s.equals(midWest)) {
+                s.setSwitchRight();
+            } else {
+                s.setSwitchRight();
+            }*/
         }
 
 
-        private void updateNorthGoingSwitches(Switch s) {
-            if(s.equals(north)){
-                s.setSwitchLeft();
-            }else if(s.equals(midEast)){
-                s.setSwitchRight();
-            }else if(s.equals(midWest)){
-                s.setSwitchLeft();
-            }else{
-                s.setSwitchLeft();
+        private void updateNorthGoingSwitches(Switch s, boolean shortestPath) {
+            if (s.equals(north)) {
+                if (shortestPath) {
+                    s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
+            } else if (s.equals(midEast)) {
+                if (shortestPath) {
+                    s.setSwitchRight();
+                } else {
+                    s.setSwitchLeft();
+                }
+            } else if (s.equals(midWest)) {
+                if (shortestPath) {
+                    s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
+            } else {
+                if (shortestPath) {
+                    s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
             }
         }
 
@@ -194,7 +266,7 @@ class Switch {
     Switch(int x, int y, boolean leftTurn) {
         this.pos = new Position(x, y);
         this.status = 0;
-        this.leftTurn= leftTurn;
+        this.leftTurn = leftTurn;
     }
 
     void setSwitchLeft() {
@@ -214,17 +286,17 @@ class Switch {
 
     }
 
-    boolean isLeftTurn(){
+    boolean isLeftTurn() {
         return leftTurn;
     }
 
-    boolean isRightTurn(){
+    boolean isRightTurn() {
         return !leftTurn;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof Switch)) return  false;
+        if (!(obj instanceof Switch)) return false;
         Switch s = (Switch) obj;
         return this.pos.x == s.pos.x && this.pos.y == s.pos.y;
     }
