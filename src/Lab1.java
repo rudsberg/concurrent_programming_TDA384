@@ -123,6 +123,7 @@ public class Lab1 {
                 }
                 if (passedSensor(se, 18, 7)) {
                 	if (goingNorth) {
+                		
                         updateSwitch(north, true);
                 	} 
                 }
