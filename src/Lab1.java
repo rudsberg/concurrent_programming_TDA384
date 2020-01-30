@@ -15,8 +15,10 @@ public class Lab1 {
     private final Switch south = new Switch(3, 11, false);
 
     private final Semaphore start = new Semaphore(1);
-    private final Semaphore korsning = new Semaphore(1);
-    private final Semaphore intersection2 = new Semaphore(1);
+    private final Semaphore midWestCS = new Semaphore(1);
+    private final Semaphore intersectionMidWest = new Semaphore(1);
+    private final Semaphore midUpperSection = new Semaphore(1);
+    private final Semaphore midEastCS = new Semaphore(1);
 
     public Lab1(int speed1, int speed2) {
 
@@ -84,56 +86,132 @@ public class Lab1 {
         }
 
         private  void updateSensors() {
+        	
+        	// Hantera goingNorth
+        		// if can take then take
+        		// else (1) 
 
             try {
                 SensorEvent se = tsi.getSensor(this.id);
                 if (passedSensor(se, 14, 9)) {
+                	if (goingSouth()) {
+                    	midEastCS.release();
+                	} else {
+                		if (!midEastCS.tryAcquire()) {
+                			System.out.println("midEastCS not acquired, train id: " + id);
+                			halt();
+                			midEastCS.acquire();
+                			System.out.println("midEastCS acquired, train id: " + id);
+                			go();
+                		} else {
+                			System.out.println("midEastCS acquired, train id: " + id);
+                		}
+                	}
                     updateSwitch(midEast, true);
                 }
                 if (passedSensor(se, 16, 7)) {
-                    updateSwitch(north, true);
+                	if (goingSouth()) {
+                    	midEastCS.acquire();
+                	}
+                    // TODO
+                    updateSwitch(north, false);
+        			System.out.println("midEastCS acquired, train id: " + id);
+
                 }
 
                 if (passedSensor(se, 16, 9)) {
                     updateSwitch(midEast, true);
                 }
+                if (passedSensor(se, 5, 9)) {
+                	if (goingNorth) {
+            			System.out.println("midWestCS released, train id: " + id);
+                		midWestCS.release();
+                	} else {
+                		if (!midWestCS.tryAcquire()) {
+                			System.out.println("midWestCS not acquired, train id: " + id);
+                			halt();
+                			midWestCS.acquire();
+                  			System.out.println("midWestCS acquired, train id: " + id);
+                			go();
+                		} else {
+                			System.out.println("midWestCS acquired, train id: " + id);
+                		}
+                		updateSwitch(midWest, true);
+                	}
+                }
                 if (passedSensor(se, 2, 11)) {
-                    if (!start.tryAcquire()) {
-                        south.setSwitchRight();
-                    } else {
-                        updateSwitch(south, true);
-                    }
+                	if (goingSouth()) {
+                		if (!start.tryAcquire()) {
+                			updateSwitch(south, false);
+                			// TODO: maybe take bottom path sema
+                		} else {
+                			System.out.println("start acquired, train id: " + id);
+                			updateSwitch(south, true);
+                		}
+                	} 
                 }
                 if (passedSensor(se, 4, 11)) {
-                    while (!korsning.tryAcquire()) {
-                        tsi.setSpeed(this.id, 0);
-                        wait();
-                    }
-                    updateSwitch(south, true);
-                    start.release();
-                    go();
+                	if (goingNorth) {
+	                	if (!midWestCS.tryAcquire()) {
+                			System.out.println("southWestCS not acquired, train id: " + id);
+	                		halt();
+	                		midWestCS.acquire();
+                			System.out.println("southWestCS acquired, train id: " + id);
+	                		go();
+	                	} else {
+                			System.out.println("southWestCS acquired, train id: " + id);
+	                	}
+                		updateSwitch(south, true);
+            			System.out.println("start released, train id: " + id);
+	                	start.release();
+                	} else {
+            			System.out.println("southWestCS released, train id: " + id);
+                		midWestCS.release();
+                	}
                 }
-
+                updateSwitch(midEast, true);
                 if (passedSensor(se, 3, 12)) {
-                    if (!goingNorth) {
-                        korsning.release();
-                    } else {
-                        if (!korsning.tryAcquire()) {
-                            tsi.setSpeed(this.id, 0);
-                            korsning.acquire();
-                            go();
-                        }
-                        updateSwitch(south, false);
-                    }
+                	if (goingNorth) {
+                		if (!midWestCS.tryAcquire()) {
+                			System.out.println("southWestCS not acquired, train id: " + id);
+                			halt();
+                			midWestCS.acquire();
+                			System.out.println("southWestCS acquired, train id: " + id);
+                    		go();
+                		} else {
+                			System.out.println("southWestCS acquired, train id: " + id);
+                		}
+                		updateSwitch(south, false);
+                		// TODO: release sem of bottom path to station (works probably only to have sema for standard track)
+                	} else {
+            			System.out.println("southWestCS released, train id: " + id);
+                		midWestCS.release();
+                		// TODO: take sem of bottom path  (works probably only to have sema for standard track)
+                	}
                 }
 
                 if (passedSensor(se, 3, 9)) {
                     if (goingNorth) {
-                        korsning.release();
-                        updateSwitch(midWest, intersection2.tryAcquire());
-                    } else {
-                        // TODO do stuff
+            			if (!midUpperSection.tryAcquire()) {
+                			System.out.println("midUpperSection not acquired, train id: " + id);
+            				updateSwitch(midWest, false);
+            			} else {
+                			System.out.println("midUpperSection acquired, train id: " + id);
+            				updateSwitch(midWest, true);
+            			}
                     }
+                }
+                if (passedSensor(se, 15, 10)) {
+                    if (!midEastCS.tryAcquire()) {
+            			System.out.println("midEastCS not acquired, train id: " + id);
+                    	halt();
+                    	midEastCS.acquire();
+            			System.out.println("midEastCS acquired, train id: " + id);
+                    	go();
+                    } else {
+            			System.out.println("midEastCS acquired, train id: " + id);
+                    }
+                    updateSwitch(midEast, false);
                 }
                 if (passedSensor(se, 15, 5) && goingNorth) {
                     switchDirection();
@@ -155,8 +233,16 @@ public class Lab1 {
 
         private void go() {
             try {
-                tsi.setSpeed(this.id, goingForward ? initialspeed : -initialspeed);
+                tsi.setSpeed(id, goingForward ? initialspeed : -initialspeed);
             } catch (CommandException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        private void halt() {
+        	try {
+        		tsi.setSpeed(id, 0);
+        	} catch (CommandException e) {
                 e.printStackTrace();
             }
         }
@@ -172,7 +258,7 @@ public class Lab1 {
         }
 
         private boolean passedSensor(SensorEvent se, int x, int y) {
-            return se.getXpos() == x && se.getYpos() == y;
+            return se.getXpos() == x && se.getYpos() == y && se.getStatus() == se.ACTIVE;
         }
 
         private void updateSwitch(Switch s, boolean shortestPath) {
@@ -184,21 +270,31 @@ public class Lab1 {
         }
 
         private void updateSouthGoingSwitches(Switch s, boolean shortestPath) {
-            if (shortestPath) {
-                s.setSwitchRight();
-            } else {
-                s.setSwitchLeft();
-            }
-            /*
-            if (s.equals(north)) {
-
+        	if (s.equals(north)) {
+                if (shortestPath) {
+                	s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
             } else if (s.equals(midEast)) {
-                s.setSwitchRight();
+                if (shortestPath) {
+                    s.setSwitchRight();
+                } else {
+                    s.setSwitchLeft();
+                }
             } else if (s.equals(midWest)) {
-                s.setSwitchRight();
+                if (shortestPath) {
+                    s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
             } else {
-                s.setSwitchRight();
-            }*/
+                if (shortestPath) {
+                    s.setSwitchLeft();
+                } else {
+                    s.setSwitchRight();
+                }
+            }
         }
 
 
@@ -229,7 +325,10 @@ public class Lab1 {
                 }
             }
         }
-
+        
+        private boolean goingSouth() {
+        	return !goingNorth;
+        }
 
     }
 }
