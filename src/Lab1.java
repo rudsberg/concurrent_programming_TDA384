@@ -112,13 +112,37 @@ public class Lab1 {
                 if (passedSensor(se, 16, 7)) {
                 	if (goingSouth()) {
                     	midEastCS.acquire();
+                    	updateSwitch(north, false);
+            			System.out.println("midEastCS acquired, train id: " + id);
+                	} else {
+                		midEastCS.release();
+            			System.out.println("midEastCS released, train id: " + id);
                 	}
-                    // TODO
-                    updateSwitch(north, false);
-        			System.out.println("midEastCS acquired, train id: " + id);
+                    // TODO more semaphores
 
                 }
-
+                if (passedSensor(se, 18, 7)) {
+                	if (goingNorth) {
+                        updateSwitch(north, true);
+                	} 
+                }
+                if (passedSensor(se, 16, 8)) {
+                	if (goingNorth) {
+            			System.out.println("midEastCS released, train id: " + id);
+                		midEastCS.release();
+                		// TODO: path to station busy
+                	} else {
+                		if (!midEastCS.tryAcquire()) {
+                			System.out.println("midEastCS not acquired, train id: " + id);
+                			halt();
+                			midEastCS.acquire();
+                			System.out.println("midEastCS acquired, train id: " + id);
+                			go();
+                		} else {
+                			System.out.println("midEastCS acquired, train id: " + id);
+                		}
+                	}
+                }
                 if (passedSensor(se, 16, 9)) {
                     updateSwitch(midEast, true);
                 }
