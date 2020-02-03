@@ -88,112 +88,41 @@ public class Lab1 {
         }
 
         private void updateOnInactive(SensorEvent se) {
+        	releaseIfNeededFor(se, 5, 11, true, start);
+        	releaseIfNeededFor(se, 16, 8, false, northStart);
+        	
+        	releaseIfNeededFor(se, 12, 9, true, midUpperSection);
+        	releaseIfNeededFor(se, 7, 9, false, midUpperSection);
+        	
+        	releaseIfNeededFor(se, 10, 7, false, northIntersection);
+        	releaseIfNeededFor(se, 9, 8, false, northIntersection);
+        	releaseIfNeededFor(se, 8, 5, false, northIntersection);
+        	releaseIfNeededFor(se, 6, 7, false, northIntersection);
 
+        	releaseIfNeededFor(se, 14, 10, false, midEastCS);
+        	releaseIfNeededFor(se, 12, 9, false, midEastCS);
+        	releaseIfNeededFor(se, 16, 8, true, midEastCS);
+        	releaseIfNeededFor(se, 15, 7, true, midEastCS);
 
-            if (passedSensorInactive(se, 16, 8)) {
-                if (goingSouth()) {
-                    northStart.release();
-                    System.out.println("NorthStart released, train id: " + id);
-                }
-
-
-            }
-            if (passedSensorInactive(se, 12, 9)) {
-                if (goingNorth) {
-                    midUpperSection.release();
-                    System.out.println("midUpperSection released, train id: " + id);
-
-                }
-
-            }
-            if (passedSensorInactive(se, 7, 9)) {
-                if (goingSouth()) {
-                    midUpperSection.release();
-                    System.out.println("midUpperSection released, train id: " + id);
-                }
-
-            }
-            if (passedSensorInactive(se, 5, 11)) {
-                if (goingNorth) {
-                    start.release();
-                    System.out.println("start released, train id: " + id);
-
-                }
-            }
-            if (passedSensorInactive(se, 14, 10)) {
-                if (goingSouth()) {
-                    midEastCS.release();
-                }
-            }
-            if (passedSensorInactive(se, 10, 7)) {
-                if (goingSouth()) {
-                    northIntersection.release();
-                }
-            }
-            if (passedSensorInactive(se, 9, 8)) {
-                if (goingSouth()) {
-                    northIntersection.release();
-                }
-            }
-            if (passedSensorInactive(se, 8, 5)) {
-                if (goingSouth()) {
-                    northIntersection.release();
-                }
-            }
-            if (passedSensorInactive(se, 6, 7)) {
-                if (goingSouth()) {
-                    northIntersection.release();
-                }
-            }
-            if (passedSensorInactive(se, 15, 7)) {
-                if (goingNorth) {
-                    midEastCS.release();
-                    System.out.println("midEastCS released, train id: " + id);
-                }
-            }
-            if (passedSensorInactive(se, 5, 10)) {
-                if (goingNorth) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                }
-            }
-
-            if (passedSensorInactive(se, 12, 9)) {
-                if (goingSouth()) {
-                    midEastCS.release();
-                }
-            }
-
-            if (passedSensorInactive(se, 16, 8)) {
-                if (goingNorth) {
-                    System.out.println("midEastCS released, train id: " + id);
-                    midEastCS.release();
-                }
-            }
-
-            if (passedSensorInactive(se, 7, 9)) {
-                if (goingNorth) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                }
-            }
-
-            if (passedSensorInactive(se, 5, 11)) {
-                if (goingSouth()) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                }
-            }
-
-            if (passedSensorInactive(se, 3, 13)) {
-
-                if (goingSouth()) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                }
-            }
-
+        	releaseIfNeededFor(se, 5, 10, true, midWestCS);
+        	releaseIfNeededFor(se, 7, 9, true, midWestCS);
+        	releaseIfNeededFor(se, 5, 11, false, midWestCS);
+        	releaseIfNeededFor(se, 3, 13, false, midWestCS);
         }
+        
+    	private void releaseIfNeededFor(SensorEvent se, int x, int y, boolean forGoingNorth, Semaphore sem) {
+			if (passedSensorInactive(se, x, y)) {
+				if (forGoingNorth) {
+					if (goingNorth) {
+						sem.release();
+					}
+				} else {
+					if (goingSouth()) {
+						sem.release();
+					}
+				}
+            }
+		}
 
         private void updateOnActive(SensorEvent se) throws InterruptedException {
 
