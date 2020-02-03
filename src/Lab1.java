@@ -148,7 +148,49 @@ public class Lab1 {
             if (passedSensorInactive(se, 15, 7)) {
                 if (goingNorth) {
                     midEastCS.release();
-                    System.out.println("midEastCS released, train id: " + id);                }
+                    System.out.println("midEastCS released, train id: " + id);
+                }
+            }
+            if (passedSensorInactive(se, 5, 10)) {
+                if (goingNorth) {
+                    System.out.println("midWestCS released, train id: " + id);
+                    midWestCS.release();
+                }
+            }
+
+            if (passedSensorInactive(se, 12, 9)) {
+                if (goingSouth()) {
+                    midEastCS.release();
+                }
+            }
+
+            if (passedSensorInactive(se, 16, 8)) {
+                if (goingNorth) {
+                    System.out.println("midEastCS released, train id: " + id);
+                    midEastCS.release();
+                }
+            }
+
+            if (passedSensorInactive(se, 7, 9)) {
+                if (goingNorth) {
+                    System.out.println("midWestCS released, train id: " + id);
+                    midWestCS.release();
+                }
+            }
+
+            if (passedSensorInactive(se, 5, 11)) {
+                if (goingSouth()) {
+                    System.out.println("midWestCS released, train id: " + id);
+                    midWestCS.release();
+                }
+            }
+
+            if (passedSensorInactive(se, 3, 13)) {
+
+                if (goingSouth()) {
+                    System.out.println("midWestCS released, train id: " + id);
+                    midWestCS.release();
+                }
             }
 
         }
@@ -193,20 +235,14 @@ public class Lab1 {
                 }
             }
 
-
             if (passedSensor(se, 5, 10)) {
-                if (goingNorth) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                } else {
+                if (goingSouth()) {
                     tryTakeAndGo("midWestCS", midWestCS, midWest, false);
                 }
             }
 
             if (passedSensor(se, 12, 9)) {
-                if (goingSouth()) {
-                    midEastCS.release();
-                } else {
+                if (goingNorth) {
                     tryTakeAndGo("midEastCS", midEastCS, midEast, true);
                 }
             }
@@ -231,10 +267,7 @@ public class Lab1 {
             }
 
             if (passedSensor(se, 16, 8)) {
-                if (goingNorth) {
-                    System.out.println("midEastCS released, train id: " + id);
-                    midEastCS.release();
-                } else {
+                if (goingSouth()) {
                     tryTakeAndGo("midEastCS", midEastCS, north, true);
                 }
             }
@@ -246,10 +279,7 @@ public class Lab1 {
             }
 
             if (passedSensor(se, 7, 9)) {
-                if (goingNorth) {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
-                } else {
+                if (goingSouth()) {
                     tryTakeAndGo("midWestCS", midWestCS, midWest, true);
                 }
             }
@@ -263,18 +293,12 @@ public class Lab1 {
             if (passedSensor(se, 5, 11)) {
                 if (goingNorth) {
                     tryTakeAndGo("midWestCS", midWestCS, south, true);
-                } else {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
                 }
             }
 
             if (passedSensor(se, 3, 13)) {
                 if (goingNorth) {
                     tryTakeAndGo("midWestCS", midWestCS, south, false);
-                } else {
-                    System.out.println("midWestCS released, train id: " + id);
-                    midWestCS.release();
                 }
             }
 
@@ -286,9 +310,7 @@ public class Lab1 {
             if (passedSensor(se, 14, 10)) {
                 if (goingNorth) {
                     tryTakeAndGo("midEastCS", midEastCS, midEast, false);
-                } else {
-                    System.out.println("midWestCS released, train id: " + id);
-                }
+                } 
             }
         }
 
