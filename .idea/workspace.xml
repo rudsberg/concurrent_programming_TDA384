@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb5c1125-c1bd-421f-977a-68372254629f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/Lab1map2.map" afterPath="$PROJECT_DIR$/Lab1map2.map" />
       <change beforePath="$PROJECT_DIR$/src/Lab1.java" afterPath="$PROJECT_DIR$/src/Lab1.java" />
     </list>
@@ -19,12 +18,16 @@
       <file leaf-file-name="Lab1.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Lab1.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="414">
-              <caret line="136" column="46" lean-forward="true" selection-start-line="136" selection-start-column="46" selection-end-line="136" selection-end-column="46" />
+            <state relative-caret-position="585">
+              <caret line="184" column="13" lean-forward="true" selection-start-line="184" selection-start-column="13" selection-end-line="184" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#11907#11908#0" expanded="true" />
-                <element signature="e#11949#11950#0" expanded="true" />
+                <element signature="e#13939#13940#0" expanded="true" />
+                <element signature="e#13981#13982#0" expanded="true" />
+                <element signature="e#15064#15065#0" expanded="true" />
+                <element signature="e#15093#15094#0" expanded="true" />
+                <element signature="e#15118#15119#0" expanded="true" />
+                <element signature="e#15147#15148#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -34,17 +37,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>9,</find>
-      <find>current speed</find>
-      <find>korsning.</find>
-      <find>illegal speed</find>
-      <find>south</find>
-      <find>illegal_speed</find>
-      <find>midUpperSection</find>
-      <find>&amp;&amp; s</find>
-      <find>15, 10</find>
-      <find>4, 9</find>
-      <find>5, 9</find>
       <find>halttake</find>
       <find>mideastcs.rele</find>
       <find>14,</find>
@@ -56,14 +48,25 @@
       <find>// TODO</find>
       <find>TODO</find>
       <find>INACTIVE</find>
-      <find>16, 8</find>
       <find>northstart.release</find>
       <find>miduppersection.release</find>
       <find>equals</find>
       <find>&quot;mideastcs&quot;</find>
       <find>17, 9</find>
-      <find>13, 9</find>
       <find>inactive</find>
+      <find>8,</find>
+      <find>7, 7</find>
+      <find>5, 9</find>
+      <find>3, 9</find>
+      <find>4, 11</find>
+      <find>13, 9</find>
+      <find>16, 11</find>
+      <find>go();</find>
+      <find>15, 7</find>
+      <find>16, 8</find>
+      <find>release</find>
+      <find>2, 9</find>
+      <find>6, 9</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -158,7 +161,7 @@
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <option name="MAIN_CLASS_NAME" value="Main" />
       <option name="VM_PARAMETERS" value="" />
-      <option name="PROGRAM_PARAMETERS" value="Lab1map2.map 15 15" />
+      <option name="PROGRAM_PARAMETERS" value="Lab1map2.map 17 19" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
@@ -276,7 +279,7 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25417075" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1609421" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -312,8 +315,12 @@
           <caret line="441" column="0" lean-forward="true" selection-start-line="441" selection-start-column="0" selection-end-line="441" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11907#11908#0" expanded="true" />
-            <element signature="e#11949#11950#0" expanded="true" />
+            <element signature="e#13939#13940#0" expanded="true" />
+            <element signature="e#13981#13982#0" expanded="true" />
+            <element signature="e#15064#15065#0" expanded="true" />
+            <element signature="e#15093#15094#0" expanded="true" />
+            <element signature="e#15118#15119#0" expanded="true" />
+            <element signature="e#15147#15148#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -324,8 +331,12 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11907#11908#0" expanded="true" />
-            <element signature="e#11949#11950#0" expanded="true" />
+            <element signature="e#13939#13940#0" expanded="true" />
+            <element signature="e#13981#13982#0" expanded="true" />
+            <element signature="e#15064#15065#0" expanded="true" />
+            <element signature="e#15093#15094#0" expanded="true" />
+            <element signature="e#15118#15119#0" expanded="true" />
+            <element signature="e#15147#15148#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -415,12 +426,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Lab1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="136" column="46" lean-forward="true" selection-start-line="136" selection-start-column="46" selection-end-line="136" selection-end-column="46" />
+        <state relative-caret-position="585">
+          <caret line="184" column="13" lean-forward="true" selection-start-line="184" selection-start-column="13" selection-end-line="184" selection-end-column="13" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11907#11908#0" expanded="true" />
-            <element signature="e#11949#11950#0" expanded="true" />
+            <element signature="e#13939#13940#0" expanded="true" />
+            <element signature="e#13981#13982#0" expanded="true" />
+            <element signature="e#15064#15065#0" expanded="true" />
+            <element signature="e#15093#15094#0" expanded="true" />
+            <element signature="e#15118#15119#0" expanded="true" />
+            <element signature="e#15147#15148#0" expanded="true" />
           </folding>
         </state>
       </provider>
