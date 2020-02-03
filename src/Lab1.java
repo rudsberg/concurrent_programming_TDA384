@@ -16,7 +16,6 @@ public class Lab1 {
 
     private final Semaphore start = new Semaphore(1);
     private final Semaphore midWestCS = new Semaphore(1);
-    private final Semaphore intersectionMidWest = new Semaphore(1);
     private final Semaphore midUpperSection = new Semaphore(1);
     private final Semaphore midEastCS = new Semaphore(1);
     private final Semaphore northStart = new Semaphore(1);
@@ -100,13 +99,45 @@ public class Lab1 {
                 shortestPathSwitches(se);
 
 
-
             } catch (CommandException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
         private void updateOnInactive(SensorEvent se) {
+
+
+            if (passedSensorInactive(se, 16, 8)) {
+                if (goingSouth()) {
+                    northStart.release();
+                    System.out.println("NorthStart released, train id: " + id);
+                }
+
+
+            }
+            if (passedSensorInactive(se, 14, 9)) {
+                if (goingNorth) {
+                    midUpperSection.release();
+                    System.out.println("midUpperSection released, train id: " + id);
+
+                }
+
+            }
+            if (passedSensorInactive(se, 5, 9)) {
+                if(goingSouth()){
+                    midUpperSection.release();
+                    System.out.println("midUpperSection released, train id: " + id);
+                }
+
+            }
+            if(passedSensorInactive(se,4,11)){
+                if(goingNorth){
+                    start.release();
+                    System.out.println("start released, train id: " + id);
+
+                }
+            }
+
         }
 
         private void updateOnActive(SensorEvent se) throws InterruptedException {
@@ -146,9 +177,7 @@ public class Lab1 {
                         updateSwitch(north, false);
                     }
                 } else {
-                    System.out.println("NorthStart released, train id: " + id);
 
-                    northStart.release();
                 }
             }
             if (passedSensor(se, 16, 8)) {
@@ -162,9 +191,6 @@ public class Lab1 {
             if (passedSensor(se, 16, 9)) {
                 if (goingSouth()) {
                     checkAndSwitch(midUpperSection, midEast, "midEastCS");
-                } else {
-                    //TODO SHOULD ONLY RELEASE IF IT ACTUALLY HAS THE SEMAPHORE
-                    midUpperSection.release();
                 }
             }
             if (passedSensor(se, 5, 9)) {
@@ -178,9 +204,6 @@ public class Lab1 {
             if (passedSensor(se, 2, 11)) {
                 if (goingSouth()) {
                     checkAndSwitch(start, south, "startCS");
-                } else {
-                    // TODO ONLY RELEASE IF IT ACTUALLY HAS SEMAPHORE.
-                    start.release();
                 }
             }
             if (passedSensor(se, 4, 11)) {
@@ -203,9 +226,6 @@ public class Lab1 {
             if (passedSensor(se, 3, 9)) {
                 if (goingNorth) {
                     checkAndSwitch(midUpperSection, midWest, "midUpperCS");
-                } else {
-                    //TODO ONLY RELEASE SEMAPHORE IF IT ACTUALLY HAS IT.
-                    midUpperSection.release();
                 }
             }
             if (passedSensor(se, 15, 10)) {
@@ -286,6 +306,10 @@ public class Lab1 {
 
         private boolean passedSensor(SensorEvent se, int x, int y) {
             return se.getXpos() == x && se.getYpos() == y && se.getStatus() == se.ACTIVE;
+        }
+
+        private boolean passedSensorInactive(SensorEvent se, int x, int y) {
+            return se.getXpos() == x && se.getYpos() == y && se.getStatus() == se.INACTIVE;
         }
 
         private void updateSwitch(Switch s, boolean shortestPath) {

@@ -2,10 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb5c1125-c1bd-421f-977a-68372254629f" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/bin/Lab1.class" afterPath="$PROJECT_DIR$/bin/Lab1.class" />
-      <change beforePath="$PROJECT_DIR$/bin/TSim/TSimInterface$1.class" afterPath="$PROJECT_DIR$/bin/TSim/TSimInterface$1.class" />
-      <change beforePath="$PROJECT_DIR$/bin/TSim/TSimInterface.class" afterPath="$PROJECT_DIR$/bin/TSim/TSimInterface.class" />
       <change beforePath="$PROJECT_DIR$/src/Lab1.java" afterPath="$PROJECT_DIR$/src/Lab1.java" />
     </list>
     <ignored path="$PROJECT_DIR$/bin/" />
@@ -21,12 +17,12 @@
       <file leaf-file-name="Lab1.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Lab1.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="422">
-              <caret line="108" column="21" lean-forward="true" selection-start-line="108" selection-start-column="21" selection-end-line="108" selection-end-column="21" />
+            <state relative-caret-position="224">
+              <caret line="225" column="37" lean-forward="false" selection-start-line="225" selection-start-column="33" selection-end-line="225" selection-end-column="37" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#11673#11674#0" expanded="true" />
-                <element signature="e#11715#11716#0" expanded="true" />
+                <element signature="e#12202#12203#0" expanded="true" />
+                <element signature="e#12244#12245#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -54,8 +50,15 @@
       <find>18,</find>
       <find>16, 9</find>
       <find>northStart.tryacq</find>
-      <find>northstart.release</find>
       <find>northstart</find>
+      <find>//TODO</find>
+      <find>// TODO</find>
+      <find>TODO</find>
+      <find>INACTIVE</find>
+      <find>16, 8</find>
+      <find>northstart.release</find>
+      <find>inactive</find>
+      <find>miduppersection.release</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -304,8 +307,8 @@
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11673#11674#0" expanded="true" />
-            <element signature="e#11715#11716#0" expanded="true" />
+            <element signature="e#12202#12203#0" expanded="true" />
+            <element signature="e#12244#12245#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -396,12 +399,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Lab1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="422">
-          <caret line="108" column="21" lean-forward="true" selection-start-line="108" selection-start-column="21" selection-end-line="108" selection-end-column="21" />
+        <state relative-caret-position="224">
+          <caret line="225" column="37" lean-forward="false" selection-start-line="225" selection-start-column="33" selection-end-line="225" selection-end-column="37" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11673#11674#0" expanded="true" />
-            <element signature="e#11715#11716#0" expanded="true" />
+            <element signature="e#12202#12203#0" expanded="true" />
+            <element signature="e#12244#12245#0" expanded="true" />
           </folding>
         </state>
       </provider>
