@@ -1,19 +1,14 @@
 import TSim.*;
 
 import java.util.concurrent.Semaphore;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class Lab1 {
 
-    List<Semaphore> semaphores = new ArrayList();
-    private final TSimInterface tsi = TSimInterface.getInstance();
     private final Switch north = new Switch(17, 7, true);
     private final Switch midWest = new Switch(4, 9, false);
     private final Switch midEast = new Switch(15, 9, true);
     private final Switch south = new Switch(3, 11, false);
-
     private final Semaphore start = new Semaphore(1);
     private final Semaphore midWestCS = new Semaphore(1);
     private final Semaphore midUpperSection = new Semaphore(1);
@@ -24,10 +19,8 @@ public class Lab1 {
 
         //setupSemaphores();
 
-        Thread train1 = new Train(speed1, 1, false);
-        Thread train2 = new Train(speed2, 2, true);
-
-
+        Thread train1 = new Thread(new Train(speed1, 1, false));
+        Thread train2 = new Thread(new Train(speed2, 2, true));
         // loop
         // sensorcheck
         // i sensorcheck kolla vilken sensor, kolla riktning, agera därefter
@@ -37,24 +30,13 @@ public class Lab1 {
 
     }
 
-
-    private void addSemaphores(List<Semaphore> semaphores) {
-
-        semaphores.add(new Semaphore(1)); // NE crossroads into CS.
-        semaphores.add(new Semaphore(1));
-
-
-    }
-
-    public class Train extends Thread {
+    public class Train implements Runnable {
         TSimInterface tsi = TSimInterface.getInstance();
         int id;
         int speed;
         int initialspeed;
         boolean goingNorth;
         boolean goingForward = true;
-        List<Semaphore> holdingsemaphores = new ArrayList();
-        boolean ack;
 
 
         public Train(int speed, int id, boolean goingNorth) {
@@ -76,7 +58,7 @@ public class Lab1 {
             }
             try {
                 tsi.setSpeed(id, speed);
-                while (!this.isInterrupted()) {
+                while (true) {
                     updateSensors();
                 }
             } catch (CommandException e) {
@@ -115,7 +97,7 @@ public class Lab1 {
 
 
             }
-            if (passedSensorInactive(se, 14, 9)) {
+            if (passedSensorInactive(se, 13, 9)) {
                 if (goingNorth) {
                     midUpperSection.release();
                     System.out.println("midUpperSection released, train id: " + id);
@@ -124,17 +106,22 @@ public class Lab1 {
 
             }
             if (passedSensorInactive(se, 5, 9)) {
-                if(goingSouth()){
+                if (goingSouth()) {
                     midUpperSection.release();
                     System.out.println("midUpperSection released, train id: " + id);
                 }
 
             }
-            if(passedSensorInactive(se,4,11)){
-                if(goingNorth){
+            if (passedSensorInactive(se, 4, 11)) {
+                if (goingNorth) {
                     start.release();
                     System.out.println("start released, train id: " + id);
 
+                }
+            }
+            if (passedSensorInactive(se, 14, 10)) {
+                if (goingSouth()) {
+                    midEastCS.release();
                 }
             }
 
@@ -142,7 +129,7 @@ public class Lab1 {
 
         private void updateOnActive(SensorEvent se) throws InterruptedException {
 
-            if (passedSensor(se, 4, 10)) {
+            if (passedSensor(se, 5, 10)) {
                 if (goingNorth) {
                     System.out.println("midWestCS released, train id: " + id);
                     midWestCS.release();
@@ -152,14 +139,14 @@ public class Lab1 {
 
 
             }
-            if (passedSensor(se, 14, 9)) {
+            if (passedSensor(se, 13, 9)) {
                 if (goingSouth()) {
                     midEastCS.release();
                 } else {
                     tryTakeAndGo("midEastCS", midEastCS, midEast, true);
                 }
             }
-            if (passedSensor(se, 16, 7)) {
+            if (passedSensor(se, 15, 7)) {
                 if (goingSouth()) {
                     tryTakeAndGo("midEastCS", midEastCS, north, false);
                 } else {
@@ -188,7 +175,7 @@ public class Lab1 {
                     tryTakeAndGo("midEastCS", midEastCS, north, true);
                 }
             }
-            if (passedSensor(se, 16, 9)) {
+            if (passedSensor(se, 17, 9)) {
                 if (goingSouth()) {
                     checkAndSwitch(midUpperSection, midEast, "midEastCS");
                 }
@@ -228,11 +215,10 @@ public class Lab1 {
                     checkAndSwitch(midUpperSection, midWest, "midUpperCS");
                 }
             }
-            if (passedSensor(se, 15, 10)) {
+            if (passedSensor(se, 14, 10)) {
                 if (goingNorth) {
                     tryTakeAndGo("midEastCS", midEastCS, midEast, false);
                 } else {
-                    midEastCS.release();
                     System.out.println("midWestCS released, train id: " + id);
                 }
             }
@@ -385,29 +371,6 @@ public class Lab1 {
 }
 
 
-class SensorObject {
-    private final Position pos;
-    private int status;
-
-    SensorObject(int x, int y, int status) {
-        this.pos = new Position(x, y);
-        this.status = status;
-    }
-
-    public int getX() {
-        return this.pos.getX();
-    }
-
-    public int getY() {
-        return this.pos.getY();
-    }
-
-    public int getStatus() {
-        return this.status;
-    }
-
-}
-
 class Switch {
     private final Position pos;
     private int status;
@@ -436,13 +399,6 @@ class Switch {
 
     }
 
-    boolean isLeftTurn() {
-        return leftTurn;
-    }
-
-    boolean isRightTurn() {
-        return !leftTurn;
-    }
 
     @Override
     public boolean equals(Object obj) {
