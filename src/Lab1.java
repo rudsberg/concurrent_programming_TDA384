@@ -69,16 +69,10 @@ public class Lab1 {
         }
 
         private void updateSensors() {
-
-
-            // Hantera goingNorth
-            // if can take then take
-            // else (1)
-
             try {
                 SensorEvent se = tsi.getSensor(this.id);
                 updateOnActive(se);
-                updateOnInactive(se);
+                releaseOnInactive(se);
                 shortestPathSwitches(se);
 
 
@@ -87,7 +81,7 @@ public class Lab1 {
             }
         }
 
-        private void updateOnInactive(SensorEvent se) {
+        private void releaseOnInactive(SensorEvent se) {
         	releaseIfNeededFor(se, 5, 11, true, start);
         	releaseIfNeededFor(se, 16, 8, false, northStart);
         	
@@ -96,8 +90,8 @@ public class Lab1 {
         	
         	releaseIfNeededFor(se, 10, 7, false, northIntersection);
         	releaseIfNeededFor(se, 9, 8, false, northIntersection);
-        	releaseIfNeededFor(se, 8, 5, false, northIntersection);
-        	releaseIfNeededFor(se, 6, 7, false, northIntersection);
+        	releaseIfNeededFor(se, 8, 5, true, northIntersection);
+        	releaseIfNeededFor(se, 6, 7, true, northIntersection);
 
         	releaseIfNeededFor(se, 14, 10, false, midEastCS);
         	releaseIfNeededFor(se, 12, 9, false, midEastCS);
@@ -126,7 +120,90 @@ public class Lab1 {
 
         private void updateOnActive(SensorEvent se) throws InterruptedException {
 
-            if (passedSensor(se, 10, 7)) {
+            handleIntersection(se);
+
+            if (passedSensor(se, 5, 10)) {
+                if (goingSouth()) {
+                	takeThenGo(midWestCS);
+                	updateSwitch(midWest, false);
+                }
+            }
+
+            if (passedSensor(se, 12, 9)) {
+                if (goingNorth) {
+                	takeThenGo(midEastCS);
+                	updateSwitch(midEast, true);
+                }
+            }
+
+            if (passedSensor(se, 15, 7)) {
+                if (goingSouth()) {
+                	takeThenGo(midEastCS);
+                	updateSwitch(north, false);
+                }
+            }
+
+            if (passedSensor(se, 19, 7)) {
+                if (goingNorth) {
+                	checkAndSwitch(northStart, north, "north");
+                }
+            }
+
+            if (passedSensor(se, 16, 8)) {
+                if (goingSouth()) {
+                	takeThenGo(midEastCS);
+                	updateSwitch(north, true);
+                }
+            }
+
+            if (passedSensor(se, 17, 9)) {
+                if (goingSouth()) {
+                    checkAndSwitch(midUpperSection, midEast, "midEastCS");
+                }
+            }
+
+            if (passedSensor(se, 7, 9)) {
+                if (goingSouth()) {
+                	takeThenGo(midWestCS);
+                	updateSwitch(midWest, true);
+                }
+            }
+
+            if (passedSensor(se, 1, 11)) {
+                if (goingSouth()) {
+                    checkAndSwitch(start, south, "startCS");
+                }
+            }
+
+            if (passedSensor(se, 5, 11)) {
+                if (goingNorth) {
+                	takeThenGo(midWestCS);
+                	updateSwitch(south, true);
+                          }
+            }
+
+            if (passedSensor(se, 3, 13)) {
+                if (goingNorth) {
+                	takeThenGo(midWestCS);
+                	updateSwitch(south, false);
+                }
+            }
+
+            if (passedSensor(se, 1, 9)) {
+                if (goingNorth) {
+                    checkAndSwitch(midUpperSection, midWest, "midUpperCS");
+                }
+            }
+            if (passedSensor(se, 14, 10)) {
+                if (goingNorth) {
+                	takeThenGo(midEastCS);
+                	updateSwitch(midEast, false);
+                } 
+            }
+        }
+
+		private void handleIntersection(SensorEvent se) throws InterruptedException {
+			if (passedSensor(se, 10, 7)) {
                 if (goingNorth) {
                     if (!northIntersection.tryAcquire()) {
                         halt();
@@ -163,85 +240,7 @@ public class Lab1 {
                     }
                 }
             }
-
-            if (passedSensor(se, 5, 10)) {
-                if (goingSouth()) {
-                    tryTakeAndGo("midWestCS", midWestCS, midWest, false);
-                }
-            }
-
-            if (passedSensor(se, 12, 9)) {
-                if (goingNorth) {
-                    tryTakeAndGo("midEastCS", midEastCS, midEast, true);
-                }
-            }
-
-            if (passedSensor(se, 15, 7)) {
-                if (goingSouth()) {
-                    tryTakeAndGo("midEastCS", midEastCS, north, false);
-
-                }
-            }
-
-            if (passedSensor(se, 19, 7)) {
-                if (goingNorth) {
-                    if (northStart.tryAcquire()) {
-                        updateSwitch(north, true);
-                        System.out.println("NorthStart acquired, train id: " + id);
-
-                    } else {
-                        updateSwitch(north, false);
-                    }
-                }
-            }
-
-            if (passedSensor(se, 16, 8)) {
-                if (goingSouth()) {
-                    tryTakeAndGo("midEastCS", midEastCS, north, true);
-                }
-            }
-
-            if (passedSensor(se, 17, 9)) {
-                if (goingSouth()) {
-                    checkAndSwitch(midUpperSection, midEast, "midEastCS");
-                }
-            }
-
-            if (passedSensor(se, 7, 9)) {
-                if (goingSouth()) {
-                    tryTakeAndGo("midWestCS", midWestCS, midWest, true);
-                }
-            }
-
-            if (passedSensor(se, 1, 11)) {
-                if (goingSouth()) {
-                    checkAndSwitch(start, south, "startCS");
-                }
-            }
-
-            if (passedSensor(se, 5, 11)) {
-                if (goingNorth) {
-                    tryTakeAndGo("midWestCS", midWestCS, south, true);
-                }
-            }
-
-            if (passedSensor(se, 3, 13)) {
-                if (goingNorth) {
-                    tryTakeAndGo("midWestCS", midWestCS, south, false);
-                }
-            }
-
-            if (passedSensor(se, 1, 9)) {
-                if (goingNorth) {
-                    checkAndSwitch(midUpperSection, midWest, "midUpperCS");
-                }
-            }
-            if (passedSensor(se, 14, 10)) {
-                if (goingNorth) {
-                    tryTakeAndGo("midEastCS", midEastCS, midEast, false);
-                } 
-            }
-        }
+		}
 
 
         private void checkAndSwitch(Semaphore sem, Switch s, String name) {
@@ -253,19 +252,13 @@ public class Lab1 {
                 updateSwitch(s, true);
             }
         }
-
-
-        private void tryTakeAndGo(String name, Semaphore cs, Switch sw, boolean shortestPath) throws InterruptedException {
+        
+        private void takeThenGo(Semaphore cs) throws InterruptedException {
             if (!cs.tryAcquire()) {
-                System.out.println(name + " not acquired, train id: " + id);
                 halt();
                 cs.acquire();
-                System.out.println(name + " acquired, train id: " + id);
                 go();
-            } else {
-                System.out.println(name + " acquired, train id: " + id);
             }
-            updateSwitch(sw, shortestPath);
         }
 
         private void shortestPathSwitches(SensorEvent se) throws CommandException, InterruptedException {
