@@ -9,7 +9,8 @@ public class Lab1 {
     private final Switch midWest = new Switch(4, 9, false);
     private final Switch midEast = new Switch(15, 9, true);
     private final Switch south = new Switch(3, 11, false);
-    private final Semaphore start = new Semaphore(1);
+    
+    private final Semaphore southStart = new Semaphore(1);
     private final Semaphore midWestCS = new Semaphore(1);
     private final Semaphore midUpperSection = new Semaphore(1);
     private final Semaphore midEastCS = new Semaphore(1);
@@ -17,18 +18,11 @@ public class Lab1 {
     private final Semaphore northIntersection = new Semaphore(1);
 
     public Lab1(int speed1, int speed2) {
-
-        //setupSemaphores();
-
         Thread train1 = new Thread(new Train(speed1, 1, false));
         Thread train2 = new Thread(new Train(speed2, 2, true));
-        // loop
-        // sensorcheck
-        // i sensorcheck kolla vilken sensor, kolla riktning, agera därefter
+
         train1.start();
         train2.start();
-
-
     }
 
     public class Train implements Runnable {
@@ -49,40 +43,31 @@ public class Lab1 {
 
         @Override
         public void run() {
-            if (id == 2) {
-                try {
-                    start.acquire();
-                    System.out.println("Start acquired!");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
             try {
+            	// Train 2 starts on a critical section and must therefore acquire the semaphore on start
+            	if (id == 2) southStart.acquire();
+            	
+            	// Initialize with the speed provided in constructor
                 tsi.setSpeed(id, speed);
-                while (true) {
-                    updateSensors();
-                }
-            } catch (CommandException e) {
-
+                
+                // Runs simulation forever (or if an exception is thrown)
+                runTrainSimulation();
+            } catch (InterruptedException | CommandException e) {
                 e.printStackTrace();
             }
         }
 
-        private void updateSensors() {
-            try {
+        private void runTrainSimulation() throws CommandException, InterruptedException {
+            while (true) {
                 SensorEvent se = tsi.getSensor(this.id);
                 updateOnActive(se);
                 releaseOnInactive(se);
                 shortestPathSwitches(se);
-
-
-            } catch (CommandException | InterruptedException e) {
-                e.printStackTrace();
             }
         }
 
         private void releaseOnInactive(SensorEvent se) {
-        	releaseIfNeededFor(se, 5, 11, true, start);
+        	releaseIfNeededFor(se, 5, 11, true, southStart);
         	releaseIfNeededFor(se, 16, 8, false, northStart);
         	
         	releaseIfNeededFor(se, 12, 9, true, midUpperSection);
@@ -105,7 +90,7 @@ public class Lab1 {
         }
         
     	private void releaseIfNeededFor(SensorEvent se, int x, int y, boolean forGoingNorth, Semaphore sem) {
-			if (passedSensorInactive(se, x, y)) {
+			if (passedSensorOnInactive(se, x, y)) {
 				if (forGoingNorth) {
 					if (goingNorth) {
 						sem.release();
@@ -118,83 +103,83 @@ public class Lab1 {
             }
 		}
 
-        private void updateOnActive(SensorEvent se) throws InterruptedException {
+        private void updateOnActive(SensorEvent se) throws InterruptedException, CommandException {
 
             handleIntersection(se);
 
-            if (passedSensor(se, 5, 10)) {
+            if (passedSensorOnActive(se, 5, 10)) {
                 if (goingSouth()) {
                 	takeThenGo(midWestCS);
                 	updateSwitch(midWest, false);
                 }
             }
 
-            if (passedSensor(se, 12, 9)) {
+            if (passedSensorOnActive(se, 12, 9)) {
                 if (goingNorth) {
                 	takeThenGo(midEastCS);
                 	updateSwitch(midEast, true);
                 }
             }
 
-            if (passedSensor(se, 15, 7)) {
+            if (passedSensorOnActive(se, 15, 7)) {
                 if (goingSouth()) {
                 	takeThenGo(midEastCS);
                 	updateSwitch(north, false);
                 }
             }
 
-            if (passedSensor(se, 19, 7)) {
+            if (passedSensorOnActive(se, 19, 7)) {
                 if (goingNorth) {
                 	checkAndSwitch(northStart, north, "north");
                 }
             }
 
-            if (passedSensor(se, 16, 8)) {
+            if (passedSensorOnActive(se, 16, 8)) {
                 if (goingSouth()) {
                 	takeThenGo(midEastCS);
                 	updateSwitch(north, true);
                 }
             }
 
-            if (passedSensor(se, 17, 9)) {
+            if (passedSensorOnActive(se, 17, 9)) {
                 if (goingSouth()) {
                     checkAndSwitch(midUpperSection, midEast, "midEastCS");
                 }
             }
 
-            if (passedSensor(se, 7, 9)) {
+            if (passedSensorOnActive(se, 7, 9)) {
                 if (goingSouth()) {
                 	takeThenGo(midWestCS);
                 	updateSwitch(midWest, true);
                 }
             }
 
-            if (passedSensor(se, 1, 11)) {
+            if (passedSensorOnActive(se, 1, 11)) {
                 if (goingSouth()) {
-                    checkAndSwitch(start, south, "startCS");
+                    checkAndSwitch(southStart, south, "startCS");
                 }
             }
 
-            if (passedSensor(se, 5, 11)) {
+            if (passedSensorOnActive(se, 5, 11)) {
                 if (goingNorth) {
                 	takeThenGo(midWestCS);
                 	updateSwitch(south, true);
                           }
             }
 
-            if (passedSensor(se, 3, 13)) {
+            if (passedSensorOnActive(se, 3, 13)) {
                 if (goingNorth) {
                 	takeThenGo(midWestCS);
                 	updateSwitch(south, false);
                 }
             }
 
-            if (passedSensor(se, 1, 9)) {
+            if (passedSensorOnActive(se, 1, 9)) {
                 if (goingNorth) {
                     checkAndSwitch(midUpperSection, midWest, "midUpperCS");
                 }
             }
-            if (passedSensor(se, 14, 10)) {
+            if (passedSensorOnActive(se, 14, 10)) {
                 if (goingNorth) {
                 	takeThenGo(midEastCS);
                 	updateSwitch(midEast, false);
@@ -202,8 +187,8 @@ public class Lab1 {
             }
         }
 
-		private void handleIntersection(SensorEvent se) throws InterruptedException {
-			if (passedSensor(se, 10, 7)) {
+		private void handleIntersection(SensorEvent se) throws InterruptedException, CommandException {
+			if (passedSensorOnActive(se, 10, 7)) {
                 if (goingNorth) {
                     if (!northIntersection.tryAcquire()) {
                         halt();
@@ -213,7 +198,7 @@ public class Lab1 {
                 }
             }
 
-            if (passedSensor(se, 9, 8)) {
+            if (passedSensorOnActive(se, 9, 8)) {
                 if (goingNorth) {
                     if (!northIntersection.tryAcquire()) {
                         halt();
@@ -222,7 +207,7 @@ public class Lab1 {
                     }
                 }
             }
-            if (passedSensor(se, 8, 5)) {
+            if (passedSensorOnActive(se, 8, 5)) {
                 if (goingSouth()) {
                     if (!northIntersection.tryAcquire()) {
                         halt();
@@ -231,7 +216,7 @@ public class Lab1 {
                     }
                 }
             }
-            if (passedSensor(se, 6, 7)) {
+            if (passedSensorOnActive(se, 6, 7)) {
                 if (goingSouth()) {
                     if (!northIntersection.tryAcquire()) {
                         halt();
@@ -253,7 +238,7 @@ public class Lab1 {
             }
         }
         
-        private void takeThenGo(Semaphore cs) throws InterruptedException {
+        private void takeThenGo(Semaphore cs) throws InterruptedException, CommandException {
             if (!cs.tryAcquire()) {
                 halt();
                 cs.acquire();
@@ -262,52 +247,46 @@ public class Lab1 {
         }
 
         private void shortestPathSwitches(SensorEvent se) throws CommandException, InterruptedException {
-            if (passedSensor(se, 15, 5) && goingNorth) {
+            if (passedSensorOnActive(se, 15, 5) && goingNorth) {
                 switchDirection();
             }
-            if (passedSensor(se, 14, 11) && !goingNorth) {
+            if (passedSensorOnActive(se, 14, 11) && !goingNorth) {
                 switchDirection();
             }
-            if (passedSensor(se, 14, 13) && !goingNorth) {
+            if (passedSensorOnActive(se, 14, 13) && !goingNorth) {
                 switchDirection();
             }
-            if (passedSensor(se, 14, 3) && goingNorth) {
+            if (passedSensorOnActive(se, 14, 3) && goingNorth) {
                 switchDirection();
             }
         }
 
-        private void go() {
-            try {
+        private void go() throws CommandException {
                 tsi.setSpeed(id, goingForward ? initialspeed : -initialspeed);
-            } catch (CommandException e) {
-                e.printStackTrace();
-            }
         }
 
-        private void halt() {
-            try {
+        private void halt() throws CommandException {
                 tsi.setSpeed(id, 0);
-            } catch (CommandException e) {
-                e.printStackTrace();
-            }
         }
 
         private void switchDirection() throws CommandException, InterruptedException {
-            System.out.println("Current speed " + speed);
             tsi.setSpeed(this.id, 0);
             Thread.sleep(2000);
             goingForward = !goingForward;
             go();
-            System.out.println(initialspeed);
             this.goingNorth = !goingNorth;
         }
 
-        private boolean passedSensor(SensorEvent se, int x, int y) {
-            return se.getXpos() == x && se.getYpos() == y && se.getStatus() == se.ACTIVE;
+        private boolean passedSensorOnActive(SensorEvent se, int x, int y) {
+            return samePos(se, x, y) && se.getStatus() == SensorEvent.ACTIVE;
         }
 
-        private boolean passedSensorInactive(SensorEvent se, int x, int y) {
-            return se.getXpos() == x && se.getYpos() == y && se.getStatus() == se.INACTIVE;
+        private boolean passedSensorOnInactive(SensorEvent se, int x, int y) {
+            return samePos(se, x, y) && se.getStatus() == SensorEvent.INACTIVE;
+        }
+        
+        private boolean samePos(SensorEvent se, int x, int y) {
+        	return se.getXpos() == x && se.getYpos() == y;
         }
 
         private void updateSwitch(Switch s, boolean shortestPath) {
