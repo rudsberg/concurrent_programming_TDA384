@@ -79,7 +79,7 @@ public class Lab1 {
          */
         private void releaseOnInactive(SensorEvent se) {
         	releaseIfNeededFor(se, 5, 11, true, southStartCS);
-        	releaseIfNeededFor(se, 16, 8, false, northStartCS);
+        	releaseIfNeededFor(se, 15, 8, false, northStartCS);
         	
         	releaseIfNeededFor(se, 12, 9, true, midUpperSectionCS);
         	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
@@ -91,10 +91,10 @@ public class Lab1 {
 
         	releaseIfNeededFor(se, 14, 10, false, midEastCS);
         	releaseIfNeededFor(se, 12, 9, false, midEastCS);
-        	releaseIfNeededFor(se, 16, 8, true, midEastCS);
+        	releaseIfNeededFor(se, 15, 8, true, midEastCS);
         	releaseIfNeededFor(se, 15, 7, true, midEastCS);
 
-        	releaseIfNeededFor(se, 5, 10, true, midWestCS);
+        	releaseIfNeededFor(se, 6, 10, true, midWestCS);
         	releaseIfNeededFor(se, 7, 9, true, midWestCS);
         	releaseIfNeededFor(se, 5, 11, false, midWestCS);
         	releaseIfNeededFor(se, 3, 13, false, midWestCS);
@@ -133,7 +133,7 @@ public class Lab1 {
 
             handleIntersection(se);
 
-            if (passedSensorOnActive(se, 5, 10)) {
+            if (passedSensorOnActive(se, 6, 10)) {
                 if (goingSouth()) {
                 	takeThenGo(midWestCS, midWest, false);
                 }
@@ -158,7 +158,7 @@ public class Lab1 {
                 }
             }
 
-            if (passedSensorOnActive(se, 16, 8)) {
+            if (passedSensorOnActive(se, 15, 8)) {
                 if (goingSouth()) {
                 	takeThenGo(midEastCS, north, true);
                 }
