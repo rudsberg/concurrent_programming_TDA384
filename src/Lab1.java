@@ -5,17 +5,17 @@ import java.util.concurrent.Semaphore;
 
 public class Lab1 {
 
-    private final Switch north = new Switch(17, 7, true);
-    private final Switch midWest = new Switch(4, 9, false);
-    private final Switch midEast = new Switch(15, 9, true);
-    private final Switch south = new Switch(3, 11, false);
+    private final Switch north 		= new Switch(17, 7, true);
+    private final Switch midWest 	= new Switch(4, 9, false);
+    private final Switch midEast 	= new Switch(15, 9, true);
+    private final Switch south 		= new Switch(3, 11, false);
     
-    private final Semaphore southStart = new Semaphore(1);
-    private final Semaphore midWestCS = new Semaphore(1);
-    private final Semaphore midUpperSection = new Semaphore(1);
-    private final Semaphore midEastCS = new Semaphore(1);
-    private final Semaphore northStart = new Semaphore(1);
-    private final Semaphore northIntersection = new Semaphore(1);
+    private final Semaphore southStartCS 		= new Semaphore(1);
+    private final Semaphore midWestCS 			= new Semaphore(1);
+    private final Semaphore midUpperSectionCS 	= new Semaphore(1);
+    private final Semaphore midEastCS 			= new Semaphore(1);
+    private final Semaphore northStartCS 		= new Semaphore(1);
+    private final Semaphore northIntersectionCS = new Semaphore(1);
 
     public Lab1(int speed1, int speed2) {
         Thread train1 = new Thread(new Train(speed1, 1, false));
@@ -45,38 +45,49 @@ public class Lab1 {
         public void run() {
             try {
             	// Train 2 starts on a critical section and must therefore acquire the semaphore on start
-            	if (id == 2) southStart.acquire();
+            	if (id == 2) southStartCS.acquire();
             	
             	// Initialize with the speed provided in constructor
                 tsi.setSpeed(id, speed);
                 
                 // Runs simulation forever (or if an exception is thrown)
-                runTrainSimulation();
+                while (true) {
+                    runTrainSimulation();
+                }
             } catch (InterruptedException | CommandException e) {
                 e.printStackTrace();
             }
         }
 
         private void runTrainSimulation() throws CommandException, InterruptedException {
-            while (true) {
+            	// Will wait for a new event to be emitted, then proceed with actions below
                 SensorEvent se = tsi.getSensor(this.id);
+                                
+                // Performs necessary updates if train made any switch ACTIVE
                 updateOnActive(se);
+                
+                // Performs necessary updates if train made any switch INACTIVE
                 releaseOnInactive(se);
-                shortestPathSwitches(se);
-            }
+                
+                // Will stop, wait and switch direction if train reached a station
+                handleTrainReachedStation(se);
         }
 
+        /**
+         * Handles all releases of semaphores. They are only released if sensor becomes inactive.
+         * @param se
+         */
         private void releaseOnInactive(SensorEvent se) {
-        	releaseIfNeededFor(se, 5, 11, true, southStart);
-        	releaseIfNeededFor(se, 16, 8, false, northStart);
+        	releaseIfNeededFor(se, 5, 11, true, southStartCS);
+        	releaseIfNeededFor(se, 16, 8, false, northStartCS);
         	
-        	releaseIfNeededFor(se, 12, 9, true, midUpperSection);
-        	releaseIfNeededFor(se, 7, 9, false, midUpperSection);
+        	releaseIfNeededFor(se, 12, 9, true, midUpperSectionCS);
+        	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
         	
-        	releaseIfNeededFor(se, 10, 7, false, northIntersection);
-        	releaseIfNeededFor(se, 9, 8, false, northIntersection);
-        	releaseIfNeededFor(se, 8, 5, true, northIntersection);
-        	releaseIfNeededFor(se, 6, 7, true, northIntersection);
+        	releaseIfNeededFor(se, 10, 7, false, northIntersectionCS);
+        	releaseIfNeededFor(se, 9, 8, false, northIntersectionCS);
+        	releaseIfNeededFor(se, 8, 5, true, northIntersectionCS);
+        	releaseIfNeededFor(se, 6, 7, true, northIntersectionCS);
 
         	releaseIfNeededFor(se, 14, 10, false, midEastCS);
         	releaseIfNeededFor(se, 12, 9, false, midEastCS);
@@ -89,6 +100,15 @@ public class Lab1 {
         	releaseIfNeededFor(se, 3, 13, false, midWestCS);
         }
         
+        /**
+         * Checks the given sensor event, x, y and if the train is headed the direction asked for (going north or south), 
+         * if so the semaphore will be released.
+         * @param se
+         * @param x
+         * @param y
+         * @param forGoingNorth
+         * @param sem
+         */
     	private void releaseIfNeededFor(SensorEvent se, int x, int y, boolean forGoingNorth, Semaphore sem) {
 			if (passedSensorOnInactive(se, x, y)) {
 				if (forGoingNorth) {
@@ -103,127 +123,114 @@ public class Lab1 {
             }
 		}
 
+    	/**
+    	 * Given a sensor event it will perform any needed actions for trains to go correctly.
+    	 * @param se
+    	 * @throws InterruptedException
+    	 * @throws CommandException
+    	 */
         private void updateOnActive(SensorEvent se) throws InterruptedException, CommandException {
 
             handleIntersection(se);
 
             if (passedSensorOnActive(se, 5, 10)) {
                 if (goingSouth()) {
-                	takeThenGo(midWestCS);
-                	updateSwitch(midWest, false);
+                	takeThenGo(midWestCS, midWest, false);
                 }
             }
 
             if (passedSensorOnActive(se, 12, 9)) {
                 if (goingNorth) {
-                	takeThenGo(midEastCS);
-                	updateSwitch(midEast, true);
+                	takeThenGo(midEastCS, midEast, true);
                 }
             }
 
             if (passedSensorOnActive(se, 15, 7)) {
                 if (goingSouth()) {
-                	takeThenGo(midEastCS);
-                	updateSwitch(north, false);
+                	System.out.println("TAKE THEN GO 15 7");
+                	takeThenGo(midEastCS, north, false);
                 }
             }
 
             if (passedSensorOnActive(se, 19, 7)) {
                 if (goingNorth) {
-                	checkAndSwitch(northStart, north, "north");
+                	checkAndSwitch(northStartCS, north, "north");
                 }
             }
 
             if (passedSensorOnActive(se, 16, 8)) {
                 if (goingSouth()) {
-                	takeThenGo(midEastCS);
-                	updateSwitch(north, true);
+                	takeThenGo(midEastCS, north, true);
                 }
             }
 
             if (passedSensorOnActive(se, 17, 9)) {
                 if (goingSouth()) {
-                    checkAndSwitch(midUpperSection, midEast, "midEastCS");
+                    checkAndSwitch(midUpperSectionCS, midEast, "midEastCS");
                 }
             }
 
             if (passedSensorOnActive(se, 7, 9)) {
                 if (goingSouth()) {
-                	takeThenGo(midWestCS);
-                	updateSwitch(midWest, true);
+                	takeThenGo(midWestCS, midWest, true);
                 }
             }
 
             if (passedSensorOnActive(se, 1, 11)) {
                 if (goingSouth()) {
-                    checkAndSwitch(southStart, south, "startCS");
+                    checkAndSwitch(southStartCS, south, "startCS");
                 }
             }
 
             if (passedSensorOnActive(se, 5, 11)) {
                 if (goingNorth) {
-                	takeThenGo(midWestCS);
-                	updateSwitch(south, true);
+                	takeThenGo(midWestCS, south, true);
                           }
             }
 
             if (passedSensorOnActive(se, 3, 13)) {
                 if (goingNorth) {
-                	takeThenGo(midWestCS);
-                	updateSwitch(south, false);
+                	takeThenGo(midWestCS, south, false);
                 }
             }
 
             if (passedSensorOnActive(se, 1, 9)) {
                 if (goingNorth) {
-                    checkAndSwitch(midUpperSection, midWest, "midUpperCS");
+                    checkAndSwitch(midUpperSectionCS, midWest, "midUpperCS");
                 }
             }
             if (passedSensorOnActive(se, 14, 10)) {
                 if (goingNorth) {
-                	takeThenGo(midEastCS);
-                	updateSwitch(midEast, false);
+                	takeThenGo(midEastCS, midEast, false);
                 } 
             }
         }
 
-		private void handleIntersection(SensorEvent se) throws InterruptedException, CommandException {
-			if (passedSensorOnActive(se, 10, 7)) {
-                if (goingNorth) {
-                    if (!northIntersection.tryAcquire()) {
-                        halt();
-                        northIntersection.acquire();
-                        go();
-                    }
-                }
+        /**
+         * Handles the only intersection that needs logic to sync trains.
+         * @param se
+         * @throws InterruptedException
+         * @throws CommandException
+         */
+		private void handleIntersection(SensorEvent se) throws InterruptedException, CommandException {        
+            if (goingNorth) {
+            	handlePathIntoIntersection(se,  10, 7);
+            	handlePathIntoIntersection(se,  9, 8);
             }
+            
+            if (goingSouth()) {
+            	handlePathIntoIntersection(se, 8, 5);
+                handlePathIntoIntersection(se, 6, 7);
+            }
+		}
 
-            if (passedSensorOnActive(se, 9, 8)) {
-                if (goingNorth) {
-                    if (!northIntersection.tryAcquire()) {
+		private void handlePathIntoIntersection(SensorEvent se, int x, int y) throws CommandException, InterruptedException {
+			if (passedSensorOnActive(se, x, y)) {
+                    if (!northIntersectionCS.tryAcquire()) {
                         halt();
-                        northIntersection.acquire();
+                        northIntersectionCS.acquire();
                         go();
                     }
-                }
-            }
-            if (passedSensorOnActive(se, 8, 5)) {
-                if (goingSouth()) {
-                    if (!northIntersection.tryAcquire()) {
-                        halt();
-                        northIntersection.acquire();
-                        go();
-                    }
-                }
-            }
-            if (passedSensorOnActive(se, 6, 7)) {
-                if (goingSouth()) {
-                    if (!northIntersection.tryAcquire()) {
-                        halt();
-                        northIntersection.acquire();
-                        go();
-                    }
-                }
             }
 		}
 
@@ -238,15 +245,21 @@ public class Lab1 {
             }
         }
         
-        private void takeThenGo(Semaphore cs) throws InterruptedException, CommandException {
+        private void takeThenGo(Semaphore cs, Switch s, boolean shortestPath) throws InterruptedException, CommandException {
             if (!cs.tryAcquire()) {
+            	System.out.println("halting");
                 halt();
                 cs.acquire();
+            	System.out.println("acquired");
+                System.out.println("updated switch");
+                updateSwitch(s, shortestPath);
                 go();
+                return;
             }
+            updateSwitch(s, shortestPath);
         }
 
-        private void shortestPathSwitches(SensorEvent se) throws CommandException, InterruptedException {
+        private void handleTrainReachedStation(SensorEvent se) throws CommandException, InterruptedException {
             if (passedSensorOnActive(se, 15, 5) && goingNorth) {
                 switchDirection();
             }
