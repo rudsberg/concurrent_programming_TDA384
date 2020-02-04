@@ -85,9 +85,9 @@ public class Lab1 {
         	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
         	
         	releaseIfNeededFor(se, 10, 7, false, northIntersectionCS);
-        	releaseIfNeededFor(se, 9, 8, false, northIntersectionCS);
+        	releaseIfNeededFor(se, 10, 8, false, northIntersectionCS);
         	releaseIfNeededFor(se, 8, 5, true, northIntersectionCS);
-        	releaseIfNeededFor(se, 6, 7, true, northIntersectionCS);
+        	releaseIfNeededFor(se, 6, 6, true, northIntersectionCS);
 
         	releaseIfNeededFor(se, 14, 10, false, midEastCS);
         	releaseIfNeededFor(se, 12, 9, false, midEastCS);
@@ -97,7 +97,7 @@ public class Lab1 {
         	releaseIfNeededFor(se, 6, 10, true, midWestCS);
         	releaseIfNeededFor(se, 7, 9, true, midWestCS);
         	releaseIfNeededFor(se, 5, 11, false, midWestCS);
-        	releaseIfNeededFor(se, 3, 13, false, midWestCS);
+        	releaseIfNeededFor(se, 4, 13, false, midWestCS);
         }
         
         /**
@@ -188,7 +188,7 @@ public class Lab1 {
                           }
             }
 
-            if (passedSensorOnActive(se, 3, 13)) {
+            if (passedSensorOnActive(se, 4, 13)) {
                 if (goingNorth) {
                 	takeThenGo(midWestCS, south, false);
                 }
@@ -215,12 +215,12 @@ public class Lab1 {
 		private void handleIntersection(SensorEvent se) throws InterruptedException, CommandException {        
             if (goingNorth) {
             	handlePathIntoIntersection(se,  10, 7);
-            	handlePathIntoIntersection(se,  9, 8);
+            	handlePathIntoIntersection(se,  10, 8);
             }
             
             if (goingSouth()) {
             	handlePathIntoIntersection(se, 8, 5);
-                handlePathIntoIntersection(se, 6, 7);
+                handlePathIntoIntersection(se, 6, 6);
             }
 		}
 
