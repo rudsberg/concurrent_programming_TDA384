@@ -51,15 +51,14 @@ public class Lab1 {
                 tsi.setSpeed(id, speed);
                 
                 // Runs simulation forever (or if an exception is thrown)
-                while (true) {
-                    runTrainSimulation();
-                }
+                runTrainSimulation();
             } catch (InterruptedException | CommandException e) {
                 e.printStackTrace();
             }
         }
 
         private void runTrainSimulation() throws CommandException, InterruptedException {
+            while (true) {
             	// Will wait for a new event to be emitted, then proceed with actions below
                 SensorEvent se = tsi.getSensor(this.id);
                                 
@@ -71,6 +70,7 @@ public class Lab1 {
                 
                 // Will stop, wait and switch direction if train reached a station
                 handleTrainReachedStation(se);
+            }
         }
 
         /**
@@ -247,16 +247,13 @@ public class Lab1 {
         
         private void takeThenGo(Semaphore cs, Switch s, boolean shortestPath) throws InterruptedException, CommandException {
             if (!cs.tryAcquire()) {
-            	System.out.println("halting");
                 halt();
                 cs.acquire();
-            	System.out.println("acquired");
-                System.out.println("updated switch");
                 updateSwitch(s, shortestPath);
                 go();
-                return;
+            } else {
+                updateSwitch(s, shortestPath);
             }
-            updateSwitch(s, shortestPath);
         }
 
         private void handleTrainReachedStation(SensorEvent se) throws CommandException, InterruptedException {
