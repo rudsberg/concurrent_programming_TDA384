@@ -155,7 +155,7 @@ public class Lab1 {
 				}
 			}
 
-			if (passedSensorOnActive(se, 17, 9)) {
+			if (passedSensorOnActive(se, 18, 9)) {
 				if (goingSouth()) {
 					checkAndSwitch(midUpperSectionCS, midEast);
 				}
