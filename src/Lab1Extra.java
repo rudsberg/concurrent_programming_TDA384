@@ -132,7 +132,7 @@ public class Lab1Extra {
 		 * it was previously in a CS, the train will leave the given monitor.
 		 */
 		private void leaveOnInactive(SensorEvent se) {
-			if (passedSensorOnInactive(se, 1, 10) && goingNorth) {
+			if (passedSensorOnInactive(se, 6, 11) && goingNorth) {
 				southStartTrack.leave();
 			}
 			if (passedSensorOnInactive(se, 15, 8) && goingSouth()) {
