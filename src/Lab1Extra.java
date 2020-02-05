@@ -1,27 +1,32 @@
 import TSim.*;
 
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Lab1 {
+public class Lab1Extra {
 
 	private final Switch north = new Switch(17, 7);
 	private final Switch midWest = new Switch(4, 9);
 	private final Switch midEast = new Switch(15, 9);
 	private final Switch south = new Switch(3, 11);
 
-	private final Semaphore southStartCS = new Semaphore(1);
-	private final Semaphore midWestCS = new Semaphore(1);
-	private final Semaphore midUpperSectionCS = new Semaphore(1);
-	//private final Semaphore midEastCS = new Semaphore(1);
-	private final Semaphore northStartCS = new Semaphore(1);
-	private final Semaphore northIntersectionCS = new Semaphore(1);
+//	private final Semaphore southStartCS = new Semaphore(1);
+	//private final Semaphore midWestCS = new Semaphore(1);
+//	private final Semaphore midUpperSectionCS = new Semaphore(1);
+//	//private final Semaphore midEastCS = new Semaphore(1);
+//	private final Semaphore northStartCS = new Semaphore(1);
+//	private final Semaphore northIntersectionCS = new Semaphore(1);
 	
 	private final Track midEastTrack = new Track();
+	private final Track southStartTrack = new Track();
+	private final Track midWestTrack = new Track();
+	private final Track midUpperTrack = new Track();
+	private final Track northStartTrack = new Track();
+	private final Track northIntersectionTrack = new Track();
 
-	public Lab1(int speed1, int speed2) {
+
+	public Lab1Extra(int speed1, int speed2) {
 		Thread train1 = new Thread(new Train(speed1, 1, false));
 		Thread train2 = new Thread(new Train(speed2, 2, true));
 
@@ -33,6 +38,7 @@ public class Lab1 {
 		private final Lock lock = new ReentrantLock();
 		private final Condition occupied = lock.newCondition();
 		private boolean isOccupied = false;
+	
 		
 		
 		void enter(Train t) throws CommandException {
@@ -40,11 +46,15 @@ public class Lab1 {
 			try {
 				while(isOccupied) {
 					t.halt();
+					System.out.println(isOccupied + " stopping " + t.id);
 					occupied.await();
+
 				}
-				System.out.print(isOccupied + " at enter.");
+			//	System.out.print(isOccupied + " at enter.");
 				isOccupied = true;
-				System.out.print(isOccupied + " at enter.");
+				System.out.println("Just set isOccupied to " + isOccupied);
+
+			//	System.out.print(isOccupied + " at enter.");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} finally {
@@ -55,7 +65,6 @@ public class Lab1 {
 		void  leave() {
 			lock.lock();
 			try {
-
 				isOccupied = false;
 				System.out.println(isOccupied + " at leave.");
 				occupied.signal();
@@ -64,6 +73,9 @@ public class Lab1 {
 				
 			}
 			
+		}
+		boolean isOccupied() {
+			return this.isOccupied;
 		}
 	}
 
@@ -88,7 +100,8 @@ public class Lab1 {
 				// Train 2 starts on a critical section and must therefore acquire the semaphore
 				// on start
 				if (id == 2)
-					southStartCS.acquire();
+					southStartTrack.enter(this);				
+				//southStartCS.acquire();
 
 				// Initialize with the speed provided in constructor
 				tsi.setSpeed(id, speed);
@@ -120,17 +133,41 @@ public class Lab1 {
          * Handles all releases of semaphores. They are only released if sensor becomes inactive.
          */
         private void releaseOnInactive(SensorEvent se) {
-        	releaseIfNeededFor(se, 6, 11, true, southStartCS);
-        	releaseIfNeededFor(se, 15, 8, false, northStartCS);
+     //   	releaseIfNeededFor(se, 1, 10, true, southStartCS);
         	
-        	releaseIfNeededFor(se, 12, 9, true, midUpperSectionCS);
+    //    	releaseIfNeededFor(se, 15, 8, false, northStartCS);
+        	if (passedSensorOnInactive(se, 1, 10) && goingNorth) {
+        		southStartTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 15, 8) && goingSouth()) {
+        		northStartTrack.leave();
+        	}
+       // 	releaseIfNeededFor(se, 12, 9, true, midUpperSectionCS);
         	
-        	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
+      //  	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
+        	if (passedSensorOnInactive(se, 12, 9) && goingNorth) {
+        		midUpperTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 7, 9) && goingSouth()) {
+        		midUpperTrack.leave();
+        	}
         	
-        	releaseIfNeededFor(se, 11, 7, false, northIntersectionCS);
-        	releaseIfNeededFor(se, 10, 8, false, northIntersectionCS);
-        	releaseIfNeededFor(se, 8, 5, true, northIntersectionCS);
-        	releaseIfNeededFor(se, 6, 6, true, northIntersectionCS);
+        	if (passedSensorOnInactive(se, 11, 7) && goingSouth()) {
+        		northIntersectionTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 10, 8) && goingSouth()) {
+        		northIntersectionTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 8, 5) && goingNorth) {
+        		northIntersectionTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 6, 6) && goingNorth) {
+        		northIntersectionTrack.leave();
+        	}
+       // 	releaseIfNeededFor (se, 11, 7, false, northIntersectionCS);
+      //  	releaseIfNeededFor(se, 10, 8, false, northIntersectionCS);
+      //  	releaseIfNeededFor(se, 8, 5, true, northIntersectionCS);
+      //  	releaseIfNeededFor(se, 6, 6, true, northIntersectionCS);
         	
         	if (passedSensorOnInactive(se, 15, 8) && goingNorth) {
             	midEastTrack.leave();
@@ -148,30 +185,22 @@ public class Lab1 {
         //	releaseIfNeededFor(se, 12, 9, false, midEastCS);
         	//releaseIfNeededFor(se, 15, 8, true, midEastCS);
         //	releaseIfNeededFor(se, 14, 7, true, midEastCS);
-
-        	releaseIfNeededFor(se, 6, 10, true, midWestCS);
-        	releaseIfNeededFor(se, 7, 9, true, midWestCS);
-        	releaseIfNeededFor(se, 6, 11, false, midWestCS);
-        	releaseIfNeededFor(se, 4, 13, false, midWestCS);
+        	if (passedSensorOnInactive(se, 6, 10) && goingNorth) {
+        		midWestTrack.leave();
+        	}if (passedSensorOnInactive(se, 7, 9) && goingNorth) {
+        		midWestTrack.leave();
+        	}if (passedSensorOnInactive(se, 6, 11) && goingSouth()) {
+        		midWestTrack.leave();
+        	}if (passedSensorOnInactive(se, 4, 13) && goingSouth()) {
+        		midWestTrack.leave();
+        	}
+        //	releaseIfNeededFor(se, 6, 10, true, midWestCS);
+       // 	releaseIfNeededFor(se, 7, 9, true, midWestCS);
+       // 	releaseIfNeededFor(se, 6, 11, false, midWestCS);
+      //  	releaseIfNeededFor(se, 4, 13, false, midWestCS);
         }
         
-        /**
-         * Checks the given sensor event, x, y and if the train is headed the direction asked for (going north or south), 
-         * if so the semaphore will be released.
-         */
-    	private void releaseIfNeededFor(SensorEvent se, int x, int y, boolean forGoingNorth, Semaphore sem) {
-			if (passedSensorOnInactive(se, x, y)) {
-				if (forGoingNorth) {
-					if (goingNorth) {
-						sem.release();
-					}
-				} else {
-					if (goingSouth()) {
-						sem.release();
-					}
-				}
-			}
-		}
+
 
 		/**
 		 * Given a sensor event it will perform any needed actions for trains to go
@@ -183,7 +212,8 @@ public class Lab1 {
 
 			if (passedSensorOnActive(se, 6, 10)) {
 				if (goingSouth()) {
-					takeThenGo(midWestCS, midWest, false);
+					midWestTrack.enter(this);
+					takeThenGo(midWest, false);
 				}
 			}
 
@@ -203,7 +233,15 @@ public class Lab1 {
 
 			if (passedSensorOnActive(se, 19, 8)) {
 				if (goingNorth) {
-					checkAndSwitch(northStartCS, north);
+					if(northStartTrack.isOccupied) {
+						updateSwitch(north, false);
+
+					}else {
+						updateSwitch(north, true);
+						northStartTrack.enter(this);
+
+					}
+					//checkAndSwitch(northStartCS, north);
 				}
 			}
 
@@ -216,37 +254,60 @@ public class Lab1 {
 
 			if (passedSensorOnActive(se, 18, 9)) {
 				if (goingSouth()) {
-					checkAndSwitch(midUpperSectionCS, midEast);
+					if(midUpperTrack.isOccupied()) {
+						updateSwitch(midEast, false);
+					}else {
+						updateSwitch(midEast,true);
+						midUpperTrack.enter(this);
+					}
+					//checkAndSwitch(midUpperSectionCS, midEast);
 				}
 			}
 
 			if (passedSensorOnActive(se, 7, 9)) {
 				if (goingSouth()) {
-					takeThenGo(midWestCS, midWest, true);
+					midWestTrack.enter(this);
+					takeThenGo(midWest, true);
 				}
 			}
 
 			if (passedSensorOnActive(se, 1, 10)) {
 				if (goingSouth()) {
-					checkAndSwitch(southStartCS, south);
+					if(southStartTrack.isOccupied) {
+						updateSwitch(south, false);
+					}else {
+						southStartTrack.enter(this);
+						updateSwitch(south, true);
+					}
+			
+
+			//		checkAndSwitch(southStartCS, south);
 				}
 			}
 
 			if (passedSensorOnActive(se, 6, 11)) {
 				if (goingNorth) {
-					takeThenGo(midWestCS, south, true);
+					midWestTrack.enter(this);
+					takeThenGo(south, true);
 				}
 			}
 
             if (passedSensorOnActive(se, 4, 13)) {
                 if (goingNorth) {
-                	takeThenGo(midWestCS, south, false);
+					midWestTrack.enter(this);
+                	takeThenGo(south, false);
                 }
             }
 
             if (passedSensorOnActive(se, 1, 9)) {
                 if (goingNorth) {
-                    checkAndSwitch(midUpperSectionCS, midWest);
+                	if(midUpperTrack.isOccupied()) {
+						updateSwitch(midWest, false);
+					}else {
+						updateSwitch(midWest,true);
+						midUpperTrack.enter(this);
+					}
+              //      checkAndSwitch(midUpperSectionCS, midWest);
                 }
             }
             if (passedSensorOnActive(se, 13, 10)) {
@@ -278,45 +339,12 @@ public class Lab1 {
 		private void handlePathIntoIntersection(SensorEvent se, int x, int y)
 				throws CommandException, InterruptedException {
 			if (passedSensorOnActive(se, x, y)) {
-				if (!northIntersectionCS.tryAcquire()) {
-					halt();
-					northIntersectionCS.acquire();
-					go();
-				}
-			}
-		}
-
-		/**
-		 * Tries to enter the shortest path if it is available, else take longer path.
-		 * Enters new section if it is not a section where only one train can be
-		 * present. Used where trains can take to different paths, for example in the
-		 * middle where they can overtake each other.
-		 */
-		private void checkAndSwitch(Semaphore sem, Switch s) {
-			if (!sem.tryAcquire()) {
-				updateSwitch(s, false);
-			} else {
-				updateSwitch(s, true);
-			}
-		}
-
-		/**
-		 * Used when section to enter is a critical section. Because if it is acquired
-		 * it will stop, wait for it to be acquired and then update the switch and start
-		 * again.
-		 */
-		private void takeThenGo(Semaphore cs, Switch s, boolean shortestPath)
-				throws InterruptedException, CommandException {
-			if (!cs.tryAcquire()) {
-				halt();
-				cs.acquire();
-				updateSwitch(s, shortestPath);
+				northIntersectionTrack.enter(this);
 				go();
-			} else {
-				updateSwitch(s, shortestPath);
+
 			}
 		}
-		
+	
 		private void takeThenGo(Switch s, boolean shortestPath) throws CommandException {
 				updateSwitch(s, shortestPath);
 				go();
