@@ -1,6 +1,9 @@
 import TSim.*;
 
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Lab1 {
 
@@ -12,9 +15,11 @@ public class Lab1 {
 	private final Semaphore southStartCS = new Semaphore(1);
 	private final Semaphore midWestCS = new Semaphore(1);
 	private final Semaphore midUpperSectionCS = new Semaphore(1);
-	private final Semaphore midEastCS = new Semaphore(1);
+	//private final Semaphore midEastCS = new Semaphore(1);
 	private final Semaphore northStartCS = new Semaphore(1);
 	private final Semaphore northIntersectionCS = new Semaphore(1);
+	
+	private final Track midEastTrack = new Track();
 
 	public Lab1(int speed1, int speed2) {
 		Thread train1 = new Thread(new Train(speed1, 1, false));
@@ -22,6 +27,44 @@ public class Lab1 {
 
 		train1.start();
 		train2.start();
+	}
+	
+	class Track {
+		private final Lock lock = new ReentrantLock();
+		private final Condition occupied = lock.newCondition();
+		private boolean isOccupied = false;
+		
+		
+		void enter(Train t) throws CommandException {
+			lock.lock();
+			try {
+				while(isOccupied) {
+					t.halt();
+					occupied.await();
+				}
+				System.out.print(isOccupied + " at enter.");
+				isOccupied = true;
+				System.out.print(isOccupied + " at enter.");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				lock.unlock();
+			}
+		}
+		
+		void  leave() {
+			lock.lock();
+			try {
+
+				isOccupied = false;
+				System.out.println(isOccupied + " at leave.");
+				occupied.signal();
+			}finally {
+				lock.unlock();
+				
+			}
+			
+		}
 	}
 
 	public class Train implements Runnable {
@@ -81,17 +124,30 @@ public class Lab1 {
         	releaseIfNeededFor(se, 15, 8, false, northStartCS);
         	
         	releaseIfNeededFor(se, 12, 9, true, midUpperSectionCS);
+        	
         	releaseIfNeededFor(se, 7, 9, false, midUpperSectionCS);
         	
         	releaseIfNeededFor(se, 11, 7, false, northIntersectionCS);
         	releaseIfNeededFor(se, 10, 8, false, northIntersectionCS);
         	releaseIfNeededFor(se, 8, 5, true, northIntersectionCS);
         	releaseIfNeededFor(se, 6, 6, true, northIntersectionCS);
-
-        	releaseIfNeededFor(se, 13, 10, false, midEastCS);
-        	releaseIfNeededFor(se, 12, 9, false, midEastCS);
-        	releaseIfNeededFor(se, 15, 8, true, midEastCS);
-        	releaseIfNeededFor(se, 14, 7, true, midEastCS);
+        	
+        	if (passedSensorOnInactive(se, 15, 8) && goingNorth) {
+            	midEastTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 14, 7) && goingNorth) {
+            	midEastTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 13, 10) && goingSouth()) {
+            	midEastTrack.leave();
+        	}
+        	if (passedSensorOnInactive(se, 12, 9) && goingSouth()) {
+            	midEastTrack.leave();
+        	}
+       // 	releaseIfNeededFor(se, 13, 10, false, midEastCS);
+        //	releaseIfNeededFor(se, 12, 9, false, midEastCS);
+        	//releaseIfNeededFor(se, 15, 8, true, midEastCS);
+        //	releaseIfNeededFor(se, 14, 7, true, midEastCS);
 
         	releaseIfNeededFor(se, 6, 10, true, midWestCS);
         	releaseIfNeededFor(se, 7, 9, true, midWestCS);
@@ -133,13 +189,15 @@ public class Lab1 {
 
 			if (passedSensorOnActive(se, 12, 9)) {
 				if (goingNorth) {
-					takeThenGo(midEastCS, midEast, true);
+					midEastTrack.enter(this);
+					takeThenGo( midEast, true);
 				}
 			}
 
 			if (passedSensorOnActive(se, 14, 7)) {
 				if (goingSouth()) {
-					takeThenGo(midEastCS, north, false);
+					midEastTrack.enter(this);
+					takeThenGo(north, false);
 				}
 			}
 
@@ -151,7 +209,8 @@ public class Lab1 {
 
 			if (passedSensorOnActive(se, 15, 8)) {
 				if (goingSouth()) {
-					takeThenGo(midEastCS, north, true);
+					midEastTrack.enter(this);
+					takeThenGo(north, true);
 				}
 			}
 
@@ -192,7 +251,8 @@ public class Lab1 {
             }
             if (passedSensorOnActive(se, 13, 10)) {
                 if (goingNorth) {
-                	takeThenGo(midEastCS, midEast, false);
+					midEastTrack.enter(this);
+                	takeThenGo(midEast, false);
                 } 
             }
         }
@@ -255,6 +315,12 @@ public class Lab1 {
 			} else {
 				updateSwitch(s, shortestPath);
 			}
+		}
+		
+		private void takeThenGo(Switch s, boolean shortestPath) throws CommandException {
+				updateSwitch(s, shortestPath);
+				go();
+			
 		}
 
 		/**
