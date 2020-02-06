@@ -30,6 +30,7 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     % TODO: Implement this function
     ServerAtom ! {join, Channel,self()},
+    %genserver:request(ServerAtom, {join, {Channel, self()}}),    
     {reply, ok, St} ;
     %{reply, {error, not_implemented, "join not implemented"}, St} ;
 
@@ -43,7 +44,7 @@ handle(St, {leave, Channel}) ->
 handle(St = #client_st{server = ServerAtom}, {message_send, Channel, Msg}) ->
     % TODO: Implement this function
     io:fwrite("Sending message from client\n", []),
-    Ans = genserver:update(ServerAtom, {message_send, {Channel, Msg}}),
+    Ans = genserver:request(ServerAtom, {message_send, {Channel, Msg}}),
     io:fwrite("some answer:  ~p ", [Ans]),
     %ServerAtom ! {message_send, {Channel, Msg}},
      {reply, ok, St} ;

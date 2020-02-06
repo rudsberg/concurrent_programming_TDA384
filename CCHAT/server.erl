@@ -25,16 +25,22 @@ start(ServerAtom) ->
     %Pid.
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
-handle(ServerState, {join, {Channel,Client}}) ->
+handle(St = #server_state{channels = Channels}, {join, {Channel,Client}}) ->
+    % If chat already exists, join that one, else create a new one 
+    case lists:member(Channel, Channels) of
+        true -> io:fwrite("Channel exists\n");
+        _    -> St = #server_state{channels = [Channel | Channels]}
+    end,
+        
 	  io:fwrite("joined channel ~p\n", [Channel]),
-      hejjjj;
+      {reply,ok,St};
 
 handle(ServerState, {message_send, {Channel, Msg}}) ->
 	  io:fwrite("Sent message ~p to channel ~p\n", [Msg, Channel]),
-            for_the_win;
+      {reply, ok, ServerState};
 
 handle(ServerState, {leave, Channel}) ->
-	  io:fwrite("left channel ~p\n", [Channel]),
+	io:fwrite("left channel ~p\n", [Channel]),
     ending.
 
 % Stop the server process registered to the given name,
