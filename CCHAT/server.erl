@@ -27,17 +27,17 @@ start(ServerAtom) ->
 
 handle(St = #server_state{channels = Channels}, {join, {Channel,Client}}) ->
     % If chat already exists, join that one, else create a new one 
-    case lists:member(Channel, Channels) of
-        true -> io:fwrite("Channel exists\n");
-        _    -> St = #server_state{channels = [Channel | Channels]}
-    end,
+   % case lists:member(Channel, Channels) of
+  %      true -> io:fwrite("Channel exists\n");
+  %      _    -> St = #server_state{channels = [Channel | Channels]}
+  %  end,
         
 	  io:fwrite("joined channel ~p\n", [Channel]),
-      {reply,ok,St};
+      {reply,join,St};
 
 handle(ServerState, {message_send, {Channel, Msg}}) ->
 	  io:fwrite("Sent message ~p to channel ~p\n", [Msg, Channel]),
-      {reply, ok, ServerState};
+      {reply, message_send, ServerState};
 
 handle(ServerState, {leave, Channel}) ->
 	io:fwrite("left channel ~p\n", [Channel]),

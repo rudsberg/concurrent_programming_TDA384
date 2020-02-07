@@ -29,9 +29,13 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 % Join channel
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     % TODO: Implement this function
-    ServerAtom ! {join, Channel,self()},
-    %genserver:request(ServerAtom, {join, {Channel, self()}}),    
-    {reply, ok, St} ;
+  %  ServerAtom ! {join, Channel,self()},
+    Ans = (catch (genserver:request(ServerAtom, {join, {Channel, self()}}))),   
+    case Ans of 
+        join -> io:fwrite("MADE IT OUT \n"),{reply,ok,St};
+        {error,_}   -> {reply,{error, server_not_reached,"Server timed out."},St}
+    end;
+  %  {reply, ok, St} ;
     %{reply, {error, not_implemented, "join not implemented"}, St} ;
 
 % Leave channel
@@ -41,13 +45,15 @@ handle(St, {leave, Channel}) ->
     % {reply, {error, not_implemented, "leave not implemented"}, St} ;
 
 % Sending message (from GUI, to channel)
-handle(St = #client_st{server = ServerAtom}, {message_send, Channel, Msg}) ->
+handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel, Msg}) ->
     % TODO: Implement this function
-    io:fwrite("Sending message from client\n", []),
-    Ans = genserver:request(ServerAtom, {message_send, {Channel, Msg}}),
-    io:fwrite("some answer:  ~p ", [Ans]),
+    Ans = (catch (genserver:request(ServerAtom, {message_send, {Channel, Msg}}))),   
+    case Ans of 
+        message_send -> io:fwrite("MADE IT OUT \n"),handle(St,{Channel,Nick,Msg}),{reply,ok,St};
+        {error,_}   -> {error,{error, server_not_reached,"Server timed out."},St}
+    end;
     %ServerAtom ! {message_send, {Channel, Msg}},
-     {reply, ok, St} ;
+  %   {reply, ok, St} ;
     %{reply, {error, not_implemented, "message sending not implemented"}, St} ;
 
 % This case is only relevant for the distinction assignment!
