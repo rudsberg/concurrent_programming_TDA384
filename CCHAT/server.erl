@@ -25,18 +25,11 @@ start(ServerAtom) ->
     %Pid.
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
-<<<<<<< HEAD
 handle(St, {join, Channel,Client}) ->
-    
-    IsMember = (lists:member(Channel, St#server_state.channels)),
-    if IsMember ->
-=======
-handle(St, {join, {Channel,Client}}) ->
 
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
     if ChannelAlreadyExist ->
->>>>>>> 185dbb25b80aa0f456bddb6532ea901787efa6fd
-        Ans = (catch (genserver:request(list_to_atom(Channel), {join, {Channel, Client}}))),
+        Ans = (catch (genserver:request(list_to_atom(Channel), {join, Channel, Client}))),
         io:fwrite("In server joining existing channel ,  ~p\n", [Ans]),
         case Ans of 
 

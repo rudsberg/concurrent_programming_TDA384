@@ -12,7 +12,7 @@ start(ChannelAtom,User) ->
     genserver:start(ChannelAtom, #channel_state{users = [User]}, fun channel:handle/2).
 
 
-handle(St, {join, {Channel,Client}}) ->
+handle(St, {join, Channel,Client}) ->
         io:fwrite("In channel joining  ~p\n", [Channel]),
 
         %Checking if user is in channel.
