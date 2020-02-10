@@ -32,11 +32,10 @@ handle(St, {join, Channel,Client}) ->
         Ans = (catch (genserver:request(list_to_atom(Channel), {join, Channel, Client}))),
         io:fwrite("In server joining existing channel ,  ~p\n", [Ans]),
         case Ans of 
-
             join ->  {reply,join,St};
             {error, user_already_joined, Msg}    -> {reply, {error, user_already_joined, Msg}, St};
-            {error,server_not_reached}     -> {reply,{error, server_not_reached,"Server timed out."},St}
-            end;
+            {error, server_not_reached}     -> {reply, {error, server_not_reached}, St}
+        end;
         true -> channel:start(list_to_atom(Channel),Client),
                 NewState = St#server_state{channels = [Channel | St#server_state.channels]},
                 {reply,join,NewState}

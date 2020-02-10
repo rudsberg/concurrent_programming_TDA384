@@ -28,17 +28,12 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 
 % Join channel
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
-    % TODO: Implement this function
-  %  ServerAtom ! {join, Channel,self()},
-    Ans = (catch (genserver:request(ServerAtom, {join, Channel, self()}))),   
-    case Ans of 
-        join ->    {reply,ok,St};
-        {error,server_not_reached}   -> {reply,{error, server_not_reached,"Server timed out."},St};
-        {error,user_already_joined, Msg}   -> {reply,{error, user_already_joined, Msg},St}
-
+    case catch (genserver:request(ServerAtom, {join, Channel, self()})) of
+        join                              -> {reply,ok,St};
+        {error,server_not_reached, Msg}   -> {reply,{error, server_not_reached,Msg},St};
+        {error,user_already_joined, Msg}  -> {reply,{error, user_already_joined, Msg},St};
+        {'EXIT', Msg}                     -> {reply, {error, server_not_reached, Msg}, St}
     end;
-  %  {reply, ok, St} ;
-    %{reply, {error, not_implemented, "join not implemented"}, St} ;
 
 % Leave channel
 handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
