@@ -40,7 +40,7 @@ handle(St, {message_send, Channel,Client,Nick,Msg}) ->
     UserInChannel = (lists:member(Client, St#channel_state.users)),
     if
     UserInChannel ->
-   [genserver:request((User), {message_receive,Channel,Nick,Msg}) || User <- St#channel_state.users, User /= Client],
+    [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client], 
    {reply,message_send,St};
    true -> {reply,{error,user_not_joined,"Can't send messages in a channel you have not joined"},St}
    end.
