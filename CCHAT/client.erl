@@ -30,7 +30,7 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     % TODO: Implement this function
   %  ServerAtom ! {join, Channel,self()},
-    Ans = (catch (genserver:request(ServerAtom, {join, {Channel, self()}}))),   
+    Ans = (catch (genserver:request(ServerAtom, join, Channel, self()))),   
     case Ans of 
         join ->    {reply,ok,St};
         {error,server_not_reached}   -> {reply,{error, server_not_reached,"Server timed out."},St};
@@ -41,15 +41,22 @@ handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     %{reply, {error, not_implemented, "join not implemented"}, St} ;
 
 % Leave channel
-handle(St, {leave, Channel}) ->
+handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
     % TODO: Implement this function
-    {reply, ok, St} ;
+    Ans = (catch (genserver:request(ServerAtom, {leave, Channel, self()}))),   
+    case Ans of 
+        leave ->    {reply,ok,St};
+        {error,server_not_reached}   -> {reply,{error, server_not_reached,"Server timed out."},St};
+        {error,user_already_joined}   -> {reply,{error, user_not_joined,"User already joined."},St}
+
+    end;
+   % {reply, ok, St} ;
     % {reply, {error, not_implemented, "leave not implemented"}, St} ;
 
 % Sending message (from GUI, to channel)
 handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel, Msg}) ->
     % TODO: Implement this function
-    Ans = (catch (genserver:request(ServerAtom, {message_send, {Channel,self(),Nick, Msg}}))),   
+    Ans = (catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg}))),   
     case Ans of 
         message_send -> {reply,ok,St};
         {error,_}   -> {reply,{error, server_not_reached,"Server timed out."},St}

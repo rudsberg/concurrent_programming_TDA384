@@ -26,7 +26,14 @@ handle(St, {join, {Channel,Client}}) ->
 
 
 handle(St, {leave, {Channel,Client,Nick}}) ->
-    {reply,leave,St};
+    UserInChannel = (lists:member(Client, St#channel_state.users)),
+
+    if UserInChannel ->
+        NewState = lists:delete(Client,St#channel_state.users),
+        {reply,leave,NewState};
+        true -> {reply,{error,user_not_joined,"User not in this channel."},St}
+    end;
+
 
 handle(St, {message_send, {Channel,Client,Nick,Msg}}) ->
     

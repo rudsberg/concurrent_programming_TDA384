@@ -25,7 +25,7 @@ start(ServerAtom) ->
     %Pid.
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
-handle(St, {join, {Channel,Client}}) ->
+handle(St, {join, Channel,Client}) ->
     
     IsMember = (lists:member(Channel, St#server_state.channels)),
     if IsMember ->
@@ -42,34 +42,7 @@ handle(St, {join, {Channel,Client}}) ->
                 {reply,join,NewState}
         end;
 
-
-
-    % If chat already exists, join that one, else create a new one 
-    % IsMember = (lists:member(Channel, St#server_state.channels)),
-    
-    % if IsMember -> io:fwrite("Channel exists\n"),
-    %     %If channel already exists, check if user is in said chat.
-    %     %Retrieve said channel.
-    %     OldChannel = findValue(Channel,St#server_state.channels),
-    %     %Checking if user is in said channel.
-    %     Ans = (catch findValue(Client, OldChannel#channel.users)),
-    %     case Ans of 
-    %            %If we find the user, return error, saying the user is already in the channel.
-    %            Val   ->  {reply,error_user_already_joined,"User already joined."};
-    %            %If we dont find the user, its good, no worries :)
-    %            %Add the user to the channel and return.
-    %           error -> NewChannel = OldChannel#channel{users = [Client | OldChannel#channel.users]},
-    %                    NewState = St#server_state{channels = [NewChannel | St#server_state.channels] },
-    %                    {reply,join,NewState}
-    %            end;
-
-    %       true    -> io:fwrite("Channel doesn't exist\n"),
-    %               NewState = St#server_state {channels = [Channel]} ,%St = #server_state{channels = [Channel | Channels]}
-    %                 {reply,join,NewState}
-    %      end;
-	% %  io:fwrite("joined channel ~p\n", [Channel]),
-
-handle(St, {message_send, {Channel,Client,Nick, Msg}}) ->
+handle(St, {message_send, Channel,Client,Nick, Msg}) ->
    % io:fwrite("Sending message to ~p\n", [Channel]),
     Ans = (catch (genserver:request(list_to_atom(Channel), {message_send, {Channel, Client,Nick,Msg}}))),
     case Ans of 
@@ -79,18 +52,19 @@ handle(St, {message_send, {Channel,Client,Nick, Msg}}) ->
     end,  
     {reply, message_send, St};
 
-handle(ServerState, {leave, Channel}) ->
-	io:fwrite("left channel ~p\n", [Channel]),
-    ending.
-
-findValue(Val,[])->
-    {error,"No value like that found."};
-
-findValue(Val,[X | XS])->
-    if Val == X ->
-        X;
-    true -> findValue(Val,XS)
+handle(St, {leave,Channel,Client}) ->
+    ChannelExists = (lists:member(Channel, St#server_state.channels)),
+    if 
+    ChannelExists -> 
+        Ans = (catch (genserver:request(list_to_atom(Channel),{leave,{Channel,Client}}))),
+        case Ans of
+            leave -> {reply,leave,St};
+            {error,user_not_joined}    -> {reply,{error,user_not_joined,"User not in this channel."},St};
+            {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
+            end;
+    true -> {reply,{error,user_not_joined,"User not in this channel."},St}
     end.
+
 
 % Stop the server process registered to the given name,
 % together with any other associated processes
