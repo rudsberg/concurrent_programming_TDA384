@@ -30,8 +30,8 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     case catch (genserver:request(ServerAtom, {join, Channel, self()})) of
         join                              -> {reply,ok,St};
-        {error,server_not_reached, Msg}   -> {reply,{error, server_not_reached,Msg},St};
         {error,user_already_joined, Msg}  -> {reply,{error, user_already_joined, Msg},St};
+        {error,server_not_reached, Msg}   -> {reply,{error, server_not_reached,Msg},St};
         {'EXIT', Msg}                     -> {reply, {error, server_not_reached, Msg}, St}
     end;
 
