@@ -42,10 +42,9 @@ handle(St, {join, Channel,Client}) ->
 
 handle(St, {message_send, Channel,Client,Nick, Msg}) ->
    % io:fwrite("Sending message to ~p\n", [Channel]),
-    Ans = (catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg}))),
-    case Ans of 
-        message_send -> {reply,message_send,St};
-        'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
+    case (catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg}))) of
+        message_send  -> {reply,message_send,St};
+        {'EXIT', _} -> {reply, {error, server_not_reached,"Random error."}, St}
 
     end,  
     {reply, message_send, St};
@@ -54,7 +53,7 @@ handle(St, {leave,Channel,Client}) ->
     ChannelExists = (lists:member(Channel, St#server_state.channels)),
     if 
     ChannelExists -> 
-        Ans = (catch (genserver:request(list_to_atom(Channel),{leave,Channel,Client}))),
+        Ans = (catch (genserver:request(list_to_atom(Channel),{leave,Client}))),
         case Ans of
             leave -> {reply,leave,St};
             {error,user_not_joined}    -> {reply,{error,user_not_joined,"User not in this channel."},St};

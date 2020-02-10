@@ -9,7 +9,8 @@
 
 
 start(ChannelAtom,User) ->
-    genserver:start(ChannelAtom, #channel_state{users = [User]}, fun channel:handle/2).
+    genserver:start(ChannelAtom, #channel_state{}, fun channel:handle/2),
+    genserver:request(ChannelAtom, {join, ChannelAtom, User}).
 
 
 handle(St, {join, Channel,Client}) ->
@@ -26,22 +27,30 @@ handle(St, {join, Channel,Client}) ->
     end;
 
 
-handle(St, {leave, Channel,Client}) ->
+handle(St, {leave,Client}) ->
     UserInChannel = (lists:member(Client, St#channel_state.users)),
 
-    if UserInChannel ->
+    if
+    UserInChannel ->
+        io:fwrite("Before leaving:  ~p\n", [St#channel_state.users]),
+        io:fwrite("User which is leaving:  ~p\n", [Client]),
+
         NewState = lists:delete(Client,St#channel_state.users),
+        io:fwrite("After leaving: ~p\n", [NewState#channel_state.users]),
+
         {reply,leave,NewState};
-        true -> {reply,{error,user_not_joined,"User not in this channel."},St}
+    true -> {reply,{error,user_not_joined,"User not in this channel."},St}
     end;
 
 
 handle(St, {message_send, Channel,Client,Nick,Msg}) ->
+    io:fwrite("IN SEND MESSAGE, CURRENT USERS :~p\n", [St#channel_state.users]),
+
     UserInChannel = (lists:member(Client, St#channel_state.users)),
     if
     UserInChannel ->
-    [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client], 
-   {reply,message_send,St};
+        [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client], 
+        {reply,message_send,St};
    true -> {reply,{error,user_not_joined,"Can't send messages in a channel you have not joined"},St}
    end.
 
