@@ -16,8 +16,9 @@ handle(St, {join, {Channel,Client}}) ->
         io:fwrite("In channel joining  ~p\n", [Channel]),
 
         %Checking if user is in channel.
-        IsMember = (lists:member(Client, St#channel_state.users)),
-        if IsMember -> {reply,error_user_already_joined,"User already joined."};
+        AlreadyInChannel = (lists:member(Client, St#channel_state.users)),
+        if AlreadyInChannel -> 
+            {reply, {error, user_already_joined, "User already joined."}, St};
 
            true     -> NewState = St#channel_state{users = [Client | St#channel_state.users]},
                        % io:fwrite("Users in channel :\n",[NewState#channel_state.users]),
@@ -30,7 +31,7 @@ handle(St, {leave, {Channel,Client,Nick}}) ->
 
 handle(St, {message_send, {Channel,Client,Nick,Msg}}) ->
     
-   [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client],
+   [genserver:request((User), {message_receive,Channel,Nick,Msg}) || User <- St#channel_state.users, User /= Client],
    {reply,message_send,St}.
 
 

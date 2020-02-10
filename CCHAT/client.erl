@@ -34,7 +34,7 @@ handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     case Ans of 
         join ->    {reply,ok,St};
         {error,server_not_reached}   -> {reply,{error, server_not_reached,"Server timed out."},St};
-        {error,user_already_joined}   -> {reply,{error, user_already_joined,"User already joined."},St}
+        {error,user_already_joined, Msg}   -> {reply,{error, user_already_joined, Msg},St}
 
     end;
   %  {reply, ok, St} ;
