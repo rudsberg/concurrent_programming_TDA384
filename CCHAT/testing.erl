@@ -1,7 +1,11 @@
 -module(testing).
 
 -export([main/0]).
-
+-record (server_state, {
+    channels = []
+}).
 
 main() ->
-    lists:member(1, [1,2,3]).
+    
+    Channel = "#hej",
+    list_to_atom(Channel).
