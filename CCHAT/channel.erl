@@ -26,7 +26,7 @@ handle(St, {join, Channel,Client}) ->
     end;
 
 
-handle(St, {leave, {Channel,Client,Nick}}) ->
+handle(St, {leave, Channel,Client}) ->
     UserInChannel = (lists:member(Client, St#channel_state.users)),
 
     if UserInChannel ->
@@ -36,7 +36,7 @@ handle(St, {leave, {Channel,Client,Nick}}) ->
     end;
 
 
-handle(St, {message_send, {Channel,Client,Nick,Msg}}) ->
+handle(St, {message_send, Channel,Client,Nick,Msg}) ->
     
    [genserver:request((User), {message_receive,Channel,Nick,Msg}) || User <- St#channel_state.users, User /= Client],
    {reply,message_send,St}.
