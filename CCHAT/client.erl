@@ -12,11 +12,12 @@
 % Return an initial state record. This is called from GUI.
 % Do not change the signature of this function.
 initial_state(Nick, GUIAtom, ServerAtom) ->
-    #client_st{
+    St = #client_st{
         gui = GUIAtom,
         nick = Nick,
         server = ServerAtom
-    }.
+    }, St.
+        
 
 % handle/2 handles each kind of request from GUI
 % Parameters:
@@ -27,8 +28,8 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
 %   - NewState is the updated state of the client
 
 % Join channel
-handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
-    case catch (genserver:request(ServerAtom, {join, Channel, self()})) of
+handle(St = #client_st{server = ServerAtom,nick = Nick}, {join, Channel}) ->
+    case catch (genserver:request(ServerAtom, {join, Channel, self(),Nick})) of
         join                              -> {reply,ok,St};
         {error,user_already_joined, Msg}  -> {reply,{error, user_already_joined, Msg},St};
         {error,server_not_reached, Msg}   -> {reply,{error, server_not_reached,Msg},St};
@@ -58,8 +59,12 @@ handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel
 
 % This case is only relevant for the distinction assignment!
 % Change nick (no check, local only)
-handle(St, {nick, NewNick}) ->
-    {reply, ok, St#client_st{nick = NewNick}} ;
+handle(St = #client_st{server = ServerAtom, nick = Nick}, {nick, NewNick}) ->
+    case catch (genserver:request(ServerAtom,{nick,Nick ,NewNick})) of
+        nick                           -> NewState = St#client_st{nick = NewNick},{reply,ok,NewState};
+        {error,nick_taken,ErrorMsg}    -> {reply,{error,nick_taken,ErrorMsg},St}
+    end;
+    %{reply, ok, St#client_st{nick = NewNick}} ;
 
 % ---------------------------------------------------------------------------
 % The cases below do not need to be changed...
