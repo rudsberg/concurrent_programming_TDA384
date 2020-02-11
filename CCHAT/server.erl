@@ -26,11 +26,9 @@ start(ServerAtom) ->
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
 handle(St, {join, Channel,Client}) ->
-
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
     if ChannelAlreadyExist ->
-        io:fwrite("In server joining existing channel ,  ~p\n", [Channel]),
-        case catch (genserver:request(list_to_atom(Channel), {join, Channel, Client})) of 
+        case catch (genserver:request(list_to_atom(Channel), {join, Client})) of 
             join                                -> {reply,join,St};
             {error, user_already_joined, Msg}   -> {reply, {error, user_already_joined, Msg}, St};
             {'EXIT', Msg}                       -> {reply, {error, server_not_reached, Msg}, St}
@@ -41,15 +39,20 @@ handle(St, {join, Channel,Client}) ->
         end;
 
 handle(St, {message_send, Channel,Client,Nick, Msg}) ->
-    case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
-        message_send -> {reply,message_send,St};
-        {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
-        'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
+    ChannelExist = channelExist(Channel, St),
+    if ChannelExist ->
+        case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
+            message_send -> {reply,message_send,St};
+            {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
+            'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
+         end;
+    true -> 
+        {reply, {error, server_not_reached, "Can't write to a channel that does not exist."}, St}
     end;
 
 handle(St, {leave,Channel,Client}) ->
-    ChannelExists = (lists:member(Channel, St#server_state.channels)),
-    if ChannelExists -> 
+    ChannelExist = channelExist(Channel, St),
+    if ChannelExist -> 
         case catch (genserver:request(list_to_atom(Channel), {leave, Client})) of
             leave -> {reply,leave,St};
             {error,user_not_joined, ErrorMsg}    -> {reply, {error,user_not_joined, ErrorMsg},St};
@@ -86,3 +89,7 @@ stop(ServerAtom) ->
             %% TODO ASK THE TA'S ABOUT THIS SHIT.
             
      end.
+
+% Helpers
+channelExist(Channel, St) ->
+    lists:member(Channel, St#server_state.channels).

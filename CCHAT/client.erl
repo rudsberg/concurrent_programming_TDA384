@@ -18,14 +18,6 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
         server = ServerAtom
     }.
 
-% handle/2 handles each kind of request from GUI
-% Parameters:
-%   - the current state of the client (St)
-%   - request data from GUI
-% Must return a tuple {reply, Data, NewState}, where:
-%   - Data is what is sent to GUI, either the atom `ok` or a tuple {error, Atom, "Error message"}
-%   - NewState is the updated state of the client
-
 % Join channel
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
     case catch (genserver:request(ServerAtom, {join, Channel, self()})) of
@@ -47,8 +39,9 @@ handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
 handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel, Msg}) ->
     case catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg})) of 
         message_send -> {reply,ok,St};
-        {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
-        {error,_}   -> {reply,{error, server_not_reached, "Server timed out."},St}
+        {error, user_not_joined, ErrorMsg}      -> {reply, {error, user_not_joined, ErrorMsg}, St};
+        {error, server_not_reached, ErrorMsg}   -> {reply, {error, user_not_joined, ErrorMsg}, St};
+        {error,_}   -> {reply, {error, server_not_reached, "Server timed out."},St}
     end;
 
 
