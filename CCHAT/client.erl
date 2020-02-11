@@ -54,6 +54,7 @@ handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel
     Ans = (catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg}))),   
     case Ans of 
         message_send -> {reply,ok,St};
+        {error, user_not_joined} -> {reply, {error, user_not_joined, "User not joined, cant write"}, St};
         {error,_}   -> {reply,{error, server_not_reached,"Server timed out."},St}
     end;
     %ServerAtom ! {message_send, {Channel, Msg}},

@@ -45,9 +45,10 @@ handle(St, {message_send, Channel,Client,Nick, Msg}) ->
     Ans = (catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg}))),
     case Ans of 
         message_send -> {reply,message_send,St};
+        {error, user_not_joined} -> {reply, {error, user_not_joined}, St};
         'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
-
     end;
+
 handle(St, {leave,Channel,Client}) ->
     ChannelExists = (lists:member(Channel, St#server_state.channels)),
     if 
