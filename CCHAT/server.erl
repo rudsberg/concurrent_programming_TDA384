@@ -10,7 +10,8 @@
 %     name
 % }).
 -record (server_state, {
-    channels = []
+    channels = [],
+    nicks = []
 }).
 
 
@@ -65,9 +66,27 @@ handle(St, {leave,Channel,Client}) ->
 handle(St = #server_state{channels = Channels},stop_server) ->
     [spawn(fun () -> genserver:stop(Ch)end)  || Ch <- Channels],
     NewState = #server_state{},
+    {reply,stop_server,NewState};
 
-    {reply,stop_server,NewState}.
+handle(St = #server_state{channels = Channels, nicks = Nicks}, {userInitiated, Nick}) ->
+    io:fwrite("userInitiated ****"),
+    NewState = St#server_state{channels = Channels, nicks = [Nick | Nicks]},
+    {reply, userInitiated, NewState};
 
+handle(St = #server_state{channels = Channels, nicks = Nicks}, {removeUser, Nick}) ->
+    NewState = St#server_state{channels = Channels, nicks = lists:delete(Nick, Nicks)},
+    {reply, removeUser, NewState};
+
+handle(St = #server_state{channels = Channels, nicks = Nicks}, {changeNick, OldNick, NewNick}) ->
+    NickAlreadyExist = lists:member(NewNick, Nicks),
+    if NickAlreadyExist ->
+        {reply, {error, nick_taken, "Nick is already taken"}, St};
+    true ->
+        NicksWhenRemoved = lists:delete(OldNick, Nicks),
+        NicksWhenAdded = [NewNick | NicksWhenRemoved],
+        NewState = St#server_state{channels = Channels, nicks = NicksWhenAdded}, 
+        {reply, ok, NewState}
+    end.
 
 % Stop the server process registered to the given name,
 % together with any other associated processes

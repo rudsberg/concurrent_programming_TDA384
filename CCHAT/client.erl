@@ -16,7 +16,11 @@ initial_state(Nick, GUIAtom, ServerAtom) ->
         gui = GUIAtom,
         nick = Nick,
         server = ServerAtom
-    }.
+    },
+    case catch (genserver:request(ServerAtom, {userInitiated, Nick})) of
+        userInitiated -> ok;
+        _End          -> io:fwrite("'Ett helete'")
+    end.
 
 % Join channel
 handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
@@ -64,9 +68,9 @@ handle(St = #client_st{gui = GUI}, {message_receive, Channel, Nick, Msg}) ->
     {reply, ok, St} ;
 
 % Quit client via GUI
-handle(St, quit) ->
-    % Any cleanup should happen here, but this is optional
-    {reply, ok, St} ;
+handle(St = #client_st{server = ServerAtom, nick = Nick}, quit) ->
+    genserver:request(ServerAtom, {removeUser, Nick}, St),
+    {reply, ok, St};
 
 % Catch-all for any unhandled requests
 handle(St, Data) ->
