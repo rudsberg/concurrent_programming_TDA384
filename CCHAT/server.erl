@@ -61,12 +61,45 @@ handle(St, {leave,Channel,Client}) ->
             {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
             end;
     true -> {reply,{error,user_not_joined,"User not in this channel."},St}
-    end.
+    end;
+
+handle(St = #server_state{channels = Channels},stop_server) ->
+    [spawn(fun () -> genserver:stop(Ch)end)  || Ch <- Channels],
+    NewState = #server_state{},
+
+    {reply,stop_server,NewState}.
 
 
 % Stop the server process registered to the given name,
 % together with any other associated processes
 stop(ServerAtom) ->
+
+    Ans = whereis(ServerAtom),
+    Ans1 = whereis(shire),
+    io:fwrite("Ans = ~p\n", [Ans]),
+    io:fwrite("ServerAtom = ~p\n", [ServerAtom]),
+    io:fwrite("Self = ~p\n", [self()]),
+
+    case  Ans of
+        undefined -> 
+            already_stopped;
+        Pid -> 
+            exit(Pid,ok), % Use whatever exit reason you want
+            %exit(Ans1,normal),
+            io:fwrite("Stopped process ~p ~p\n", [ServerAtom,Pid]),
+            io:fwrite("Process ~p is now  = ~p\n", [ServerAtom,whereis(ServerAtom)]),
+            stopped
+     end.
+%    Ans = (catch genserver:request(ServerAtom,stop_server)),
+%    io:fwrite("Ans in stop  = ~p\n", [Ans]),
+%
+ %   case (Ans) of
+  %      stop_server ->exit(shutdown,ok);
+   %     _           -> {reply,{error,server_not_reached,"Server timed out."},#server_state{}}
+    %end.
+    
+
+
     % TODO Implement function
     % Return ok
-    not_implemented.
+

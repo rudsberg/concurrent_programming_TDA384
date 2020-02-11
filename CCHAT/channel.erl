@@ -1,5 +1,5 @@
 -module(channel).
--export([start/2,handle/2]).
+-export([start/2,handle/2,stop/1]).
 
 
 -record (channel_state, {
@@ -46,28 +46,19 @@ handle(St, {message_send, Channel,Client,Nick,Msg}) ->
    end.
 
 
+stop(Channel) ->
+    case  whereis(Channel) of
+        undefined -> 
+            already_stopped;
+        Pid -> 
+            exit(Pid,ok), % Use whatever exit reason you want
+            %exit(Ans1,normal),
+            io:fwrite("Stopped process ~p ~p\n", [Channel,Pid]),
+            io:fwrite("Process ~p is now  = ~p\n", [Channel,whereis(Channel)]),
+            stopped
+     end.
 
 
-
-
-   %spawn(fun () -> genserver:request(list_to_atom(User), {message_receive,{Channel,Nick,Msg}}) end).
-
-
-
-
-
-%         Ans = (catch (genserver:request(list_to_atom(Client), {message_receive, {Channel,Nick,Msg}}))),
-%         io:fwrite("Ans = ~p\n", [Ans]),
-
-%        % case Ans of 
-%    %     message_receive -> {reply,message_send,St};
-%     %    {error,_} -> {error,{error_user_already_joined,"User not in channel lul."},St}
-%     %    end;
-%        % true -> {error,{error_user_already_joined,"User not in channel lul."},St}
-%    %     end.
-%   Pid = spawn(fun() -> loop(State, F) end),
-
-%  {reply,message_send,St}.
 
 
 
