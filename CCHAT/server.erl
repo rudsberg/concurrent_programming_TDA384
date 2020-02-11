@@ -47,9 +47,7 @@ handle(St, {message_send, Channel,Client,Nick, Msg}) ->
         message_send -> {reply,message_send,St};
         'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
 
-    end,  
-    {reply, message_send, St};
-
+    end;
 handle(St, {leave,Channel,Client}) ->
     ChannelExists = (lists:member(Channel, St#server_state.channels)),
     if 
@@ -73,33 +71,20 @@ handle(St = #server_state{channels = Channels},stop_server) ->
 % Stop the server process registered to the given name,
 % together with any other associated processes
 stop(ServerAtom) ->
-
-    Ans = whereis(ServerAtom),
-    Ans1 = whereis(shire),
-    io:fwrite("Ans = ~p\n", [Ans]),
-    io:fwrite("ServerAtom = ~p\n", [ServerAtom]),
-    io:fwrite("Self = ~p\n", [self()]),
-
-    case  Ans of
+    case  whereis(ServerAtom) of
         undefined -> 
             already_stopped;
         Pid -> 
-            exit(Pid,ok), % Use whatever exit reason you want
-            %exit(Ans1,normal),
-            io:fwrite("Stopped process ~p ~p\n", [ServerAtom,Pid]),
-            io:fwrite("Process ~p is now  = ~p\n", [ServerAtom,whereis(ServerAtom)]),
-            stopped
+            Ans =  (catch (genserver:request(ServerAtom,stop_server))), 
+            io:fwrite("Ans = ~p", [Ans]),
+            case Ans of stop_server -> exit(Pid,ok),
+                           
+                           io:fwrite("\n", []),
+                          % io:fwrite("\n", []),
+                           ok;
+            _          -> error
+        end
+
+            %% TODO ASK THE TA'S ABOUT THIS SHIT.
+            
      end.
-%    Ans = (catch genserver:request(ServerAtom,stop_server)),
-%    io:fwrite("Ans in stop  = ~p\n", [Ans]),
-%
- %   case (Ans) of
-  %      stop_server ->exit(shutdown,ok);
-   %     _           -> {reply,{error,server_not_reached,"Server timed out."},#server_state{}}
-    %end.
-    
-
-
-    % TODO Implement function
-    % Return ok
-

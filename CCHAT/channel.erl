@@ -47,15 +47,14 @@ handle(St, {message_send, Channel,Client,Nick,Msg}) ->
 
 
 stop(Channel) ->
-    case  whereis(Channel) of
+    Ans  = whereis(Channel),
+    fwrite:io("Ans = ~p\n",[Ans]),
+    case  Ans of
         undefined -> 
             already_stopped;
         Pid -> 
-            exit(Pid,ok), % Use whatever exit reason you want
-            %exit(Ans1,normal),
-            io:fwrite("Stopped process ~p ~p\n", [Channel,Pid]),
-            io:fwrite("Process ~p is now  = ~p\n", [Channel,whereis(Channel)]),
-            stopped
+            exit(Pid,ok),
+            ok
      end.
 
 
