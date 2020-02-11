@@ -37,7 +37,9 @@ handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
 
 % Leave channel
 handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
-    case catch (genserver:request(ServerAtom, {leave, Channel, self()})) of 
+            case catch (genserver:request(list_to_atom(Channel), {leave, self()})) of
+
+  %  case catch (genserver:request(ServerAtom, {leave, Channel, self()})) of 
         leave ->    {reply,ok,St};
         {error, server_not_reached}   -> {reply, {error, server_not_reached, "Server timed out."}, St};
         {error, user_not_joined, ErrorMsg}   -> {reply, {error, user_not_joined, ErrorMsg}, St}
@@ -45,10 +47,12 @@ handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
 
 % Sending message (from GUI, to channel)
 handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel, Msg}) ->
-    case catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg})) of 
+    case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, self(),Nick,Msg})) of 
+
+  %  case catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg})) of 
         message_send -> {reply,ok,St};
         {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
-        {error,_}   -> {reply,{error, server_not_reached, "Server timed out."},St}
+        _   -> {reply,{error,server_not_reached, "Server timed out."},St}
     end;
 
 

@@ -40,49 +40,42 @@ handle(St, {join, Channel,Client}) ->
                 {reply,join,NewState}
         end;
 
-handle(St, {message_send, Channel,Client,Nick, Msg}) ->
-    case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
-        message_send -> {reply,message_send,St};
-        {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
-        'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
-    end;
+%handle(St, {message_send, Channel,Client,Nick, Msg}) ->
+%    case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
+%        message_send -> {reply,message_send,St};
+%        {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
+%        'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
+%    end;
 
-handle(St, {leave,Channel,Client}) ->
-    ChannelExists = (lists:member(Channel, St#server_state.channels)),
-    if ChannelExists -> 
-        case catch (genserver:request(list_to_atom(Channel), {leave, Client})) of
-            leave -> {reply,leave,St};
-            {error,user_not_joined, ErrorMsg}    -> {reply, {error,user_not_joined, ErrorMsg},St};
-            {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
-        end;
-    true -> 
-        {reply,{error,user_not_joined,"User not in this channel."},St}
-    end;
+%handle(St, {leave,Channel,Client}) ->
+%    ChannelExists = (lists:member(Channel, St#server_state.channels)),
+%    if ChannelExists -> 
+%        case catch (genserver:request(list_to_atom(Channel), {leave, Client})) of
+%            leave -> {reply,leave,St};
+%            {error,user_not_joined, ErrorMsg}    -> {reply, {error,user_not_joined, ErrorMsg},St};
+%            {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
+%        end;
+%    true -> 
+%        {reply,{error,user_not_joined,"User not in this channel."},St}
+%    end;
 
-handle(St = #server_state{channels = Channels},stop_server) ->
-    [spawn(fun () -> genserver:stop(Ch)end)  || Ch <- Channels],
-    NewState = #server_state{},
+handle(St,stop_channels) ->
+    io:fwrite("Channels : ~p\n",[St#server_state.channels]),
+    Results = [genserver:stop(list_to_atom(Ch)) || Ch <- St#server_state.channels],
+    Predicate = fun (E) ->E == ok end,
+    Status = lists:all(Predicate,Results),
+    %io:fwrite("Ans  in handle: ~p\n",[Ans]),
 
-    {reply,stop_server,NewState}.
+    if Status ->    {reply,stop_channels,St};
+        true ->   {error,{server_not_reached,"Server not reached."},#server_state{}}
+        end.
 
 
 % Stop the server process registered to the given name,
 % together with any other associated processes
 stop(ServerAtom) ->
-    case  whereis(ServerAtom) of
-        undefined -> 
-            already_stopped;
-        Pid -> 
-            Ans =  (catch (genserver:request(ServerAtom,stop_server))), 
-            io:fwrite("Ans = ~p", [Ans]),
-            case Ans of stop_server -> exit(Pid,ok),
-                           
-                           io:fwrite("\n", []),
-                          % io:fwrite("\n", []),
-                           ok;
-            _          -> error
-        end
+    case  (catch (genserver:request(ServerAtom,stop_channels))) of
+        stop_channels -> genserver:stop(ServerAtom);
+        Else          -> {reply,{error,server_not_reached,"Timed out."},#server_state{}}
+    end.
 
-            %% TODO ASK THE TA'S ABOUT THIS SHIT.
-            
-     end.

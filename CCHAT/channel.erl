@@ -1,5 +1,5 @@
 -module(channel).
--export([start/2,handle/2,stop/1]).
+-export([start/2,handle/2]).
 
 
 -record (channel_state, {
@@ -45,18 +45,6 @@ handle(St, {message_send, Channel,Client,Nick,Msg}) ->
     true -> 
         {reply, {error, user_not_joined, "User can not send message if not in channel."}, St}
     end.
-
-stop(Channel) ->
-    Ans  = whereis(Channel),
-    fwrite:io("Ans = ~p\n",[Ans]),
-    case  Ans of
-        undefined -> 
-            already_stopped;
-        Pid -> 
-            exit(Pid,ok),
-            ok
-     end.
-
 
 
 
