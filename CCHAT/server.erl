@@ -49,15 +49,14 @@ handle(St, {message_send, Channel,Client,Nick, Msg}) ->
 
 handle(St, {leave,Channel,Client}) ->
     ChannelExists = (lists:member(Channel, St#server_state.channels)),
-    if 
-    ChannelExists -> 
-        Ans = (catch (genserver:request(list_to_atom(Channel),{leave,Channel,Client}))),
-        case Ans of
+    if ChannelExists -> 
+        case catch (genserver:request(list_to_atom(Channel), {leave, Client})) of
             leave -> {reply,leave,St};
-            {error,user_not_joined}    -> {reply,{error,user_not_joined,"User not in this channel."},St};
+            {error,user_not_joined, ErrorMsg}    -> {reply, {error,user_not_joined, ErrorMsg},St};
             {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
-            end;
-    true -> {reply,{error,user_not_joined,"User not in this channel."},St}
+        end;
+    true -> 
+        {reply,{error,user_not_joined,"User not in this channel."},St}
     end;
 
 handle(St = #server_state{channels = Channels},stop_server) ->

@@ -37,12 +37,10 @@ handle(St = #client_st{server = ServerAtom}, {join, Channel}) ->
 
 % Leave channel
 handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
-    Ans = (catch (genserver:request(ServerAtom, {leave, Channel, self()}))),   
-    case Ans of 
+    case catch (genserver:request(ServerAtom, {leave, Channel, self()})) of 
         leave ->    {reply,ok,St};
-        {error,server_not_reached}   -> {reply,{error, server_not_reached,"Server timed out."},St};
-        {error,user_already_joined}   -> {reply,{error, user_not_joined,"User already joined."},St}
-
+        {error, server_not_reached}   -> {reply, {error, server_not_reached, "Server timed out."}, St};
+        {error, user_not_joined, ErrorMsg}   -> {reply, {error, user_not_joined, ErrorMsg}, St}
     end;
 
 % Sending message (from GUI, to channel)
