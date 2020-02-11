@@ -41,11 +41,9 @@ handle(St, {join, Channel,Client}) ->
         end;
 
 handle(St, {message_send, Channel,Client,Nick, Msg}) ->
-   % io:fwrite("Sending message to ~p\n", [Channel]),
-    Ans = (catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg}))),
-    case Ans of 
+    case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
         message_send -> {reply,message_send,St};
-        {error, user_not_joined} -> {reply, {error, user_not_joined}, St};
+        {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
         'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
     end;
 

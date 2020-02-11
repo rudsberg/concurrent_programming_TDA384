@@ -38,13 +38,12 @@ handle(St, {leave, Channel,Client}) ->
 
 handle(St, {message_send, Channel,Client,Nick,Msg}) ->
     UserInChannel = (lists:member(Client, St#channel_state.users)),
-    if
-    UserInChannel ->
-    [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client], 
-   {reply,message_send,St};
-   true -> {reply, {error, user_not_joined}, St}
-   end.
-
+    if UserInChannel ->
+        [spawn(fun () -> genserver:request((User), {message_receive,Channel,Nick,Msg}) end) || User <- St#channel_state.users, User /= Client], 
+        {reply,message_send,St};
+    true -> 
+        {reply, {error, user_not_joined, "User can not send message if not in channel."}, St}
+    end.
 
 stop(Channel) ->
     Ans  = whereis(Channel),
