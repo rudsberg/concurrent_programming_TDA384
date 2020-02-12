@@ -7,6 +7,8 @@
     nicks    = []
 }).
 
+% Starts genserver instance with the ServerAtom process and initializes the server
+% with an empty state. 
 start(ServerAtom) ->
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
@@ -30,16 +32,17 @@ handle(St, {join, Channel, Client, Nick}) ->
         {reply, join, _NewState}
     end;
 
-
+% Updates nick if it is not already used by another user. If it is in use
+% it will return an error.
 handle(St = #server_state{nicks = Nicks}, {nick, OldNick, NewNick}) ->
     NewNickExists = lists:member(NewNick, St#server_state.nicks),
     if NewNickExists  -> 
-        {reply,{error,nick_taken,"Nick already in use, please try another."},St};
+        {reply, {error, nick_taken, "Nick already in use, please try another."}, St};
     true ->
-        UserListWithoutOldNick = lists:delete(OldNick, Nicks),
-        NewState = St#server_state{nicks = [NewNick | UserListWithoutOldNick]},
+        NewState = St#server_state{nicks = [NewNick | lists:delete(OldNick, Nicks)]},
         {reply, nick, NewState}
     end;
+
 
 handle(St = #server_state {nicks = Nicks}, {add_user, User}) ->
     NewState = St#server_state{nicks = [User | Nicks]},
