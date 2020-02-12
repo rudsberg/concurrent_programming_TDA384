@@ -12,25 +12,23 @@ start(ChannelAtom,User) ->
     genserver:start(ChannelAtom, #channel_state{users = [User]}, fun channel:handle/2).
 
 
-handle(St, {join, Channel,Client}) ->
-        io:fwrite("In channel joining  ~p\n", [Channel]),
+handle(St = #channel_state{users = Users}, {join, Channel,Client}) ->
 
         %Checking if user is in channel.
-        AlreadyInChannel = (lists:member(Client, St#channel_state.users)),
+        AlreadyInChannel = (lists:member(Client, Users)),
         if AlreadyInChannel -> 
             {reply, {error, user_already_joined, "User already joined."}, St};
 
-           true     -> NewState = St#channel_state{users = [Client | St#channel_state.users]},
-                       % io:fwrite("Users in channel :\n",[NewState#channel_state.users]),
+           true     -> NewState = St#channel_state{users = [Client | Users]},
                        {reply,join,NewState}
     end;
 
 
-handle(St, {leave, Client}) ->
-    UserInChannel = (lists:member(Client, St#channel_state.users)),
+handle(St = #channel_state{users = Users}, {leave, Client}) ->
+    UserInChannel = (lists:member(Client, Users)),
 
     if UserInChannel ->
-        NewState = St#channel_state{users = lists:delete(Client,St#channel_state.users)},
+        NewState = St#channel_state{users = lists:delete(Client,Users)},
         {reply,leave,NewState};
     true -> 
         {reply, {error, user_not_joined, "User not in this channel."}, St}

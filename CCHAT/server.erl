@@ -2,24 +2,15 @@
 
 -export([start/1, stop/1,handle/2]).
 
-% Start a new server process with the given name
-% Do not change the signature of this function.
-
-% -record (channel, {
-%     users = [],
-%     name
-% }).
 -record (server_state, {
     channels = [],
     users    = []
 }).
 
-
 start(ServerAtom) ->
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
 handle(St, {join, Channel,Client,Nick}) ->
-    
     UserState = addNewUserToServerState(Nick,St),
 
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
