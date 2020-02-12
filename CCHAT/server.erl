@@ -15,7 +15,7 @@ handle(St, {join, Channel,Client,Nick}) ->
 
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
     if ChannelAlreadyExist ->
-        case catch (genserver:request(list_to_atom(Channel), {join, Channel, Client})) of 
+        case catch (genserver:request(list_to_atom(Channel), {join, Client})) of 
             join                                -> {reply,join,UserState};
             {error, user_already_joined, Msg}   -> {reply, {error, user_already_joined, Msg}, UserState};
             {'EXIT', Msg}                       -> {reply, {error, server_not_reached, Msg}, UserState}
