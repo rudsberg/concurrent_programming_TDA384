@@ -1,8 +1,7 @@
 -module(client).
 -export([handle/2, initial_state/3]).
 
-% This record defines the structure of the state of a client.
-% Add whatever other fields you need.
+
 -record(client_st, {
     gui, % atom of the GUI process
     nick, % nick/username of the client
@@ -12,45 +11,35 @@
 % Return an initial state record. This is called from GUI.
 % Do not change the signature of this function.
 initial_state(Nick, GUIAtom, ServerAtom) ->
-    St = #client_st{
+    #client_st{
         gui = GUIAtom,
         nick = Nick,
         server = ServerAtom
-    }, St.
+    }.
         
-
-% handle/2 handles each kind of request from GUI
-% Parameters:
-%   - the current state of the client (St)
-%   - request data from GUI
-% Must return a tuple {reply, Data, NewState}, where:
-%   - Data is what is sent to GUI, either the atom `ok` or a tuple {error, Atom, "Error message"}
-%   - NewState is the updated state of the client
-
-% Join channel
+%Sends a join request to the process registered as ServerAtom and acts according to 
+%the result.
 handle(St = #client_st{server = ServerAtom,nick = Nick}, {join, Channel}) ->
     case catch (genserver:request(ServerAtom, {join, Channel, self(),Nick})) of
-        join                              -> {reply,ok,St};
-        {error,user_already_joined, Msg}  -> {reply,{error, user_already_joined, Msg},St};
-        {error,server_not_reached, Msg}   -> {reply,{error, server_not_reached,Msg},St};
-        {'EXIT', Msg}                     -> {reply, {error, server_not_reached, Msg}, St}
+        join                              -> {reply, ok, St};
+        {error,user_already_joined, Msg}  -> {reply, {error, user_already_joined, Msg}, St};
+        {error,server_not_reached, Msg}   -> {reply, {error, server_not_reached,  Msg}, St};
+        {'EXIT', Msg}                     -> {reply, {error, server_not_reached,  Msg}, St}
     end;
 
-% Leave channel
-handle(St = #client_st{server = ServerAtom}, {leave, Channel}) ->
+%Sends a request to the process registered as Channel trying to join a specific channel
+% and acts according to the result.
+handle(St, {leave, Channel}) ->
             case catch (genserver:request(list_to_atom(Channel), {leave, self()})) of
-
-  %  case catch (genserver:request(ServerAtom, {leave, Channel, self()})) of 
         leave ->    {reply,ok,St};
         {error, server_not_reached}   -> {reply, {error, server_not_reached, "Server timed out."}, St};
         {error, user_not_joined, ErrorMsg}   -> {reply, {error, user_not_joined, ErrorMsg}, St}
     end;
 
-% Sending message (from GUI, to channel)
-handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel, Msg}) ->
+%Sends a request to the process registered as Channel trying to send a message to the users in that specific channel
+%and acts according to the result.
+handle(St = #client_st{nick = Nick}, {message_send, Channel, Msg}) ->
     case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, self(),Nick,Msg})) of 
-
-  %  case catch (genserver:request(ServerAtom, {message_send, Channel,self(),Nick, Msg})) of 
         message_send -> {reply,ok,St};
         {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
         _   -> {reply,{error,server_not_reached, "Server timed out."},St}
@@ -59,12 +48,13 @@ handle(St = #client_st{server = ServerAtom, nick = Nick}, {message_send, Channel
 
 % This case is only relevant for the distinction assignment!
 % Change nick (no check, local only)
+%Sends request to the process registered as ServerAtom trying to change the nick of the client
+% and acts according to the result.
 handle(St = #client_st{server = ServerAtom, nick = Nick}, {nick, NewNick}) ->
     case catch (genserver:request(ServerAtom,{nick,Nick ,NewNick})) of
         nick                           -> NewState = St#client_st{nick = NewNick},{reply,ok,NewState};
         {error,nick_taken,ErrorMsg}    -> {reply,{error,nick_taken,ErrorMsg},St}
     end;
-    %{reply, ok, St#client_st{nick = NewNick}} ;
 
 % ---------------------------------------------------------------------------
 % The cases below do not need to be changed...
