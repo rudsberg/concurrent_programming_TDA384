@@ -15,6 +15,7 @@ start(Atom, State, F) ->
 
 stop(Atom) ->
   Atom!stop,
+  io:fwrite("Stopping : ~p\n",[Atom]),
   catch(unregister(Atom)),
   ok.
 
@@ -23,11 +24,9 @@ loop(State, F) ->
     {request, From, Ref, Data} ->
       case catch(F(State, Data)) of
         {'EXIT', Reason} ->
-                io:fwrite("exit genserver\n"),
           From!{exit, Ref, Reason},
           loop(State, F);
         {reply, R, NewState} ->
-                io:fwrite("reply genserver\n"),
           From!{result, Ref, R},
           loop(NewState, F)
         end;
@@ -35,7 +34,6 @@ loop(State, F) ->
       From ! {ok, Ref},
       loop(State, NewF);
     stop ->
-      io:fwrite("stopping genserver\n"),
       true
   end.
 
@@ -51,13 +49,10 @@ request(Pid, Data, Timeout) ->
   Pid!{request, self(), Ref, Data},
   receive
     {result, Ref, Result} ->
-            io:fwrite("request: result genserver\n"),
       Result;
     {exit, Ref, Reason} ->
-                  io:fwrite("request: exit genserver\n"),
       exit(Reason)
   after Timeout ->
-                      io:fwrite("request: timeout genserver\n"),
     exit("Timeout")
   end.
 

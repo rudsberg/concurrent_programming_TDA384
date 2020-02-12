@@ -2,94 +2,75 @@
 
 -export([start/1, stop/1,handle/2]).
 
-% Start a new server process with the given name
-% Do not change the signature of this function.
-
-% -record (channel, {
-%     users = [],
-%     name
-% }).
 -record (server_state, {
-    channels = []
+    channels = [],
+    nicks    = []
 }).
 
-
+% Starts genserver instance with the ServerAtom process and initializes the server
+% with an empty state. 
 start(ServerAtom) ->
-    % TODO Implement function
-    % - Spawn a new process which waits for a message, handles it, then loops infinitely
-    % - Register this process to ServerAtom
-    % - Return the process ID
-    %io:fwrite("server process started with id ~p~n",[self()]),
-    %Pid = spawn(fun () -> startLoop() end),
-    %register(ServerAtom, Pid),
-    %Pid.
-    genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
+    genserver:start(ServerAtom, emptyState(), fun server:handle/2).
 
-handle(St, {join, Channel,Client}) ->
+% If channel does not exist before, a new channel will get created and client
+% will join this newly created channel. If channel exist and client is not 
+% already apart of it, it will join it. The nick is added to server state 
+% to keep track of all taken nicks.
+handle(St, {join, Channel, Client, Nick}) ->
+    NewState = addNickIfNotAddedBefore(St, Nick),
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
+
     if ChannelAlreadyExist ->
         case catch (genserver:request(list_to_atom(Channel), {join, Client})) of 
-            join                                -> {reply,join,St};
-            {error, user_already_joined, Msg}   -> {reply, {error, user_already_joined, Msg}, St};
-            {'EXIT', Msg}                       -> {reply, {error, server_not_reached, Msg}, St}
-        end;
-        true -> channel:start(list_to_atom(Channel),Client),
-                NewState = St#server_state{channels = [Channel | St#server_state.channels]},
-                {reply,join,NewState}
-        end;
-
-handle(St, {message_send, Channel,Client,Nick, Msg}) ->
-    ChannelExist = channelExist(Channel, St),
-    if ChannelExist ->
-        case catch (genserver:request(list_to_atom(Channel), {message_send, Channel, Client,Nick,Msg})) of 
-            message_send -> {reply,message_send,St};
-            {error, user_not_joined, ErrorMsg} -> {reply, {error, user_not_joined, ErrorMsg}, St};
-            'EXIT' -> {reply,{error, server_not_reached,"EXIT."},St}
-         end;
-    true -> 
-        {reply, {error, server_not_reached, "Can't write to a channel that does not exist."}, St}
-    end;
-
-handle(St, {leave,Channel,Client}) ->
-    ChannelExist = channelExist(Channel, St),
-    if ChannelExist -> 
-        case catch (genserver:request(list_to_atom(Channel), {leave, Client})) of
-            leave -> {reply,leave,St};
-            {error,user_not_joined, ErrorMsg}    -> {reply, {error,user_not_joined, ErrorMsg},St};
-            {error,server_not_reached} -> {reply,{error,server_not_reached,"Server timed out."},St}
+            join                                -> {reply, join, NewState};
+            {error, user_already_joined, Msg}   -> {reply, {error, user_already_joined, Msg}, NewState};
+            {'EXIT', Msg}                       -> {reply, {error, server_not_reached, Msg}, NewState}
         end;
     true -> 
-        {reply,{error,user_not_joined,"User not in this channel."},St}
+        channel:start(list_to_atom(Channel),Client),
+        _NewState = NewState#server_state{channels = [Channel | NewState#server_state.channels]},
+        {reply, join, _NewState}
     end;
 
-handle(St = #server_state{channels = Channels},stop_server) ->
-    [spawn(fun () -> genserver:stop(Ch)end)  || Ch <- Channels],
-    NewState = #server_state{},
+% Updates nick if it is not already used by another user. If it is in use
+% it will return an error.
+handle(St = #server_state{nicks = Nicks}, {nick, OldNick, NewNick}) ->
+    NewNickExists = lists:member(NewNick, St#server_state.nicks),
+    if NewNickExists  -> 
+        {reply, {error, nick_taken, "Nick already in use, please try another."}, St};
+    true ->
+        NewState = St#server_state{nicks = [NewNick | lists:delete(OldNick, Nicks)]},
+        {reply, nick, NewState}
+    end;
 
-    {reply,stop_server,NewState}.
+% Attempts to stop all channels. If any channel is not correctly shut down (ok not returned)
+% an error will be returned and the new server state consist of the channels that was not 
+% shutdown. If all succeeds to shut down, no channels will remain in the state.
+handle(St = #server_state {channels = Channels}, stop_channels) ->  
+    ShutDownChannelsWithStatus = lists:zip([genserver:stop(list_to_atom(Ch)) || Ch <- Channels], Channels),
+    NotShutdown = [Ch || {Status, Ch} <- ShutDownChannelsWithStatus, Status /= ok],
 
+    if length(NotShutdown) == 0 ->    
+        {reply, stop_channels, St#server_state{channels = []}};
+    true ->           
+        {error, {server_not_reached,"Server not reached."}, St#server_state{channels = NotShutdown}}
+    end.
 
-% Stop the server process registered to the given name,
-% together with any other associated processes
+% Attempts to stop all channels and then stop the server process.
 stop(ServerAtom) ->
-    case  whereis(ServerAtom) of
-        undefined -> 
-            already_stopped;
-        Pid -> 
-            Ans =  (catch (genserver:request(ServerAtom,stop_server))), 
-            io:fwrite("Ans = ~p", [Ans]),
-            case Ans of stop_server -> exit(Pid,ok),
-                           
-                           io:fwrite("\n", []),
-                          % io:fwrite("\n", []),
-                           ok;
-            _          -> error
-        end
-
-            %% TODO ASK THE TA'S ABOUT THIS SHIT.
-            
-     end.
+    case catch (genserver:request(ServerAtom,stop_channels)) of
+        stop_channels -> genserver:stop(ServerAtom);
+        _             -> {reply, {error, server_not_reached, "Timed out."}, emptyState()}
+    end.
 
 % Helpers
-channelExist(Channel, St) ->
-    lists:member(Channel, St#server_state.channels).
+addNickIfNotAddedBefore(St = #server_state{nicks = Nicks}, Nick) ->
+    UserInServer = lists:member(Nick, Nicks),
+    if UserInServer ->
+        St;
+    true -> 
+        St#server_state{nicks = [Nick | Nicks]}
+    end.
+
+emptyState() ->
+    #server_state{}.
