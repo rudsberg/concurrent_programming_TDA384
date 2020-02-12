@@ -12,7 +12,7 @@ start(ChannelAtom,User) ->
     genserver:start(ChannelAtom, #channel_state{users = [User]}, fun channel:handle/2).
 
 
-handle(St = #channel_state{users = Users}, {join, Channel,Client}) ->
+handle(St = #channel_state{users = Users}, {join, Client}) ->
 
         %Checking if user is in channel.
         AlreadyInChannel = (lists:member(Client, Users)),

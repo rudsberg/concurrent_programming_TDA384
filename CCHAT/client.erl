@@ -85,5 +85,5 @@ handle(St, quit) ->
     {reply, ok, St} ;
 
 % Catch-all for any unhandled requests
-handle(St, Data) ->
+handle(St, _) ->
     {reply, {error, not_implemented, "Client does not handle this command"}, St} .
