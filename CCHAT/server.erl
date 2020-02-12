@@ -4,14 +4,14 @@
 
 -record (server_state, {
     channels = [],
-    users    = []
+    nicks    = []
 }).
 
 start(ServerAtom) ->
     genserver:start(ServerAtom, #server_state{}, fun server:handle/2).
 
-handle(St, {join, Channel,Client,Nick}) ->
-    UserState = addNewUserToServerState(Nick,St),
+handle(St, {join, Channel, Client, Nick}) ->
+    UserState = addNewUserToServerState(Nick, St),
 
     ChannelAlreadyExist = (lists:member(Channel, St#server_state.channels)),
     if ChannelAlreadyExist ->
@@ -25,19 +25,18 @@ handle(St, {join, Channel,Client,Nick}) ->
                 {reply,join,NewState}
         end;
 
-handle(St = #server_state{users = Users},{nick,OldNick,NewNick}) ->
-    NewNickExists = lists:member(NewNick,St#server_state.users),
+handle(St = #server_state{nicks = Nicks}, {nick, OldNick, NewNick}) ->
+    NewNickExists = lists:member(NewNick, St#server_state.nicks),
     if NewNickExists  -> 
         {reply,{error,nick_taken,"Nick already in use, please try another."},St};
-       
     true ->
-        UserListWithoutOldNick = lists:delete(OldNick,Users),
-        NewState = St#server_state{users = [NewNick | UserListWithoutOldNick]},
-        {reply,nick,NewState}
+        UserListWithoutOldNick = lists:delete(OldNick, Nicks),
+        NewState = St#server_state{nicks = [NewNick | UserListWithoutOldNick]},
+        {reply, nick, NewState}
     end;
 
-handle(St = #server_state {users = Users},{add_user, User}) ->
-    NewState = St#server_state{users = [User | Users]},
+handle(St = #server_state {nicks = Nicks}, {add_user, User}) ->
+    NewState = St#server_state{nicks = [User | Nicks]},
     {reply,add_user,NewState};
 
 handle(St = #server_state {channels = Channels},stop_channels) ->  
@@ -50,11 +49,11 @@ handle(St = #server_state {channels = Channels},stop_channels) ->
         {error, {server_not_reached,"Server not reached."}, St#server_state{channels = NotShutdown}}
     end.
 
-addNewUserToServerState(Client,St = #server_state{users = Users}) ->
-UserInServer = lists:member(Client,Users),
+addNewUserToServerState(Nick, St = #server_state{nicks = Nicks}) ->
+UserInServer = lists:member(Nick, Nicks),
     if UserInServer ->
         St;
-        true -> St#server_state{users = [Client | Users]}
+        true -> St#server_state{nicks = [Nick | Nicks]}
     end.
 
 
