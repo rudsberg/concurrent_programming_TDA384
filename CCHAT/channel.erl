@@ -17,20 +17,20 @@ start(ChannelAtom,User) ->
 %error message. If the user is NOT in the channel, updates the channel state by adding the new user
 %and returns indicating a successful request with the updated state. 
 handle(St = #channel_state{users = Users}, {join, Client}) ->
-        %Checking if user is in channel.
-        AlreadyInChannel = (lists:member(Client, Users)),
-        if AlreadyInChannel -> 
-            {reply, {error, user_already_joined, "User already joined."}, St};
-        true -> 
-            NewState = St#channel_state{users = [Client | Users]},
-                       {reply,join,NewState}
+    %Checking if user is in channel.
+    AlreadyInChannel = (lists:member(Client, Users)),
+    if AlreadyInChannel -> 
+        {reply, {error, user_already_joined, "User already joined."}, St};
+    true -> 
+        NewState = St#channel_state{users = [Client | Users]},
+        {reply,join,NewState}
     end;
+
 %Handle taking care of the leave command
 %Checks if the user is in the channel, if not return a corresponding error message. If the user
 %IS in the channel, update the channel state by deleting the user from the users list and returns
 %indicating that the request was successful and returns an updated state. 
 handle(St = #channel_state{users = Users}, {leave, Client}) ->
-
     UserInChannel = (lists:member(Client, Users)),
     if UserInChannel ->
         NewState = St#channel_state{users = lists:delete(Client,Users)},
