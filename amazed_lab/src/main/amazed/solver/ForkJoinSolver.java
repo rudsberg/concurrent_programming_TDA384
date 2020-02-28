@@ -5,8 +5,6 @@ import amazed.maze.Maze;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 
 /**
  * <code>ForkJoinSolver</code> implements a solver for
@@ -46,14 +44,11 @@ public class ForkJoinSolver
         this.forkAfter = forkAfter;
     }
 
-    private int initgoal;
-
     private ForkJoinSolver(Maze maze, int start, ConcurrentSkipListSet<Integer> visited, ConcurrentMap<Integer, Integer> predecessor) {
         this(maze);
         super.start = start;
         super.visited = visited;
         super.predecessor = predecessor;
-        initgoal = maze.start();
     }
 
     /**
@@ -72,26 +67,7 @@ public class ForkJoinSolver
         return parallelSearch();
     }
 
-    /**
-     * - you will fork new threads, and each thread will continue the search in a different part of the maze in parallel to the others.
-     * Fork när det finns mer än en granne *som är ej besökt*. Testa N forks för N grannar om det är mer än 1 granne (kanske N-1, för huvudtråd).
-     * <p>
-     * - what state has to be shared among parallel threads (visited, a stack frontier, and a map predecessor)
-     * visited     --> trådsäker
-     * frontier    --> borde kunna vara lokal. Checka mot visited, så fort man går till en granne, lägg då till in visited.
-     * predecessor --> trådsäker (flera trådar kan lägga till samtidigt)
-     * <p>
-     * - use thread safe version of shared data structures
-     * <p>
-     * - modify seq with paralell solution
-     * <p>
-     * ------------
-     * <p>
-     * ForkJoinPool ansvarar för alla workers, ForkJoinTasks, vars konkreta klass RecursiveTask har returvärde.
-     * ForkJoinTasks compute kör arbetet.
-     */
     private List<Integer> parallelSearch() {
-
         // one player active on the maze at start
         int player = maze.newPlayer(start);
         // start with start node
@@ -101,31 +77,30 @@ public class ForkJoinSolver
             // get the new node to process
             int current = frontier.pop();
 
-
             // if current node has a goal
             if (maze.hasGoal(current)) {
                 // move player to goal
                 tryToMove(player,current);
 
                 // search finished: reconstruct and return path
-
-                List<Integer> test = pathFromTo(maze.start(), current);
-
-                if (test == null) {
-                    System.out.println("PATH IS NULL");
-                }
-                return test;
+                return pathFromTo(maze.start(), current);
             }
+
+            // If all neighbours are visited, e.g. when player reaches a dead end,
+            // try to move if it has not been visited before and return null
+            // because this path does not lead to goal and therefore should be discarded.
             if (allNeighboursVisited(current)) {
                 tryToMove(player,current);
                 return null;
             }
 
-
+            // In case of only one possible path, do not spawn any new players, instead
+            // let the current process deal with it.
             if (notVisitedNeighbours(current) <= 1) {
-                // if current node has not been visited yet
+                // Only consider node if it has not been visited before
                 if (!visited.contains(current)) {
-                tryToMove(player,current);
+                    tryToMove(player,current);
+
                     // for every node nb adjacent to current
                     for (int nb : maze.neighbors(current)) {
                         // add nb to the nodes to be processed
@@ -136,21 +111,26 @@ public class ForkJoinSolver
                     }
                 }
             } else {
+                // Two or more unvisited neighbours exist
                 tryToMove(player,current);
-                List<ForkJoinSolver> subtasks = new ArrayList<>();
-                for (int neighbor : maze.neighbors(current)) {
-                        if (!visited.contains(neighbor)) {
-                            predecessor.put(neighbor, current);
-                            subtasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
 
+                // Create new player for each possible path
+                List<ForkJoinSolver> subtasks = new ArrayList<>();
+                for (int nb : maze.neighbors(current)) {
+                        if (!visited.contains(nb)) {
+                            predecessor.put(nb, current);
+                            subtasks.add(new ForkJoinSolver(maze, nb, visited, predecessor));
                         }
                     }
 
 
+                // Activate players
                 for (ForkJoinSolver task : subtasks) {
                     task.fork();
                 }
 
+                // Collect result only if path exists, which it only will if
+                // player found the goal.
                 for (ForkJoinSolver subtask : subtasks) {
                     List<Integer> path = subtask.join();
                     if (path != null) {
@@ -161,25 +141,9 @@ public class ForkJoinSolver
             }
 
         }
+
         // all nodes explored, no goal found
         return null;
-    }
-
-    private boolean allNeighboursVisited(int current) {
-        for (int neighbor : maze.neighbors(current)) {
-            if (!visited.contains(neighbor))
-                return false;
-        }
-        return true;
-    }
-
-    private int notVisitedNeighbours(int current) {
-        int count = 0;
-        for (int neighbor : maze.neighbors(current)) {
-            if (!visited.contains(neighbor))
-                count++;
-        }
-        return count;
     }
 
     protected List<Integer> pathFromTo(int from, int to) {
@@ -190,20 +154,38 @@ public class ForkJoinSolver
             current = predecessor.get(current);
             System.out.println(current);
             if (current == null) {
-                //     System.out.println("CURRENT IS NULL(current comes here : " + current + ")");
-                //    System.out.println("CURRENT IS NULL(current comes here : " + current + ")");
-
                 return null;
             }
         }
         path.add(from);
         Collections.reverse(path);
-        System.out.println("path is = " + path);
         return path;
     }
 
+    /**
+     * For current position, checks if all surrounding neighbours are visited.
+     */
+    private boolean allNeighboursVisited(int current) {
+        return notVisitedNeighbours(current) == 0;
+    }
+
+    /**
+     * Counts the number of neighbours that are not visited.
+     */
+    private int notVisitedNeighbours(int current) {
+        int count = 0;
+        for (int neighbor : maze.neighbors(current)) {
+            if (!visited.contains(neighbor))
+                count++;
+        }
+        return count;
+    }
+
+    /**
+     * Adds to visited and moves player on the maze if it has not been previously visited.
+     */
     private void tryToMove(int player,int current){
-        if(!visited.contains(current)){
+        if (!visited.contains(current)){
             visited.add(current);
             maze.move(player,current);
         }
