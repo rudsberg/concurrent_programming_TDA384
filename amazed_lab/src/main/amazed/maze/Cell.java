@@ -7,8 +7,7 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 
 
-class Cell
-{
+class Cell {
     private final Tile tile;
     private final Queue<Player> players;
 
@@ -16,8 +15,7 @@ class Cell
     private final Character text;
     private final int id;
 
-    Cell(Tile tile, int id)
-    {
+    Cell(Tile tile, int id) {
         this.tile = tile;
         this.image = tile.getImage();
         this.text = tile.getText();
@@ -26,54 +24,45 @@ class Cell
         this.players = new ConcurrentLinkedQueue<>();
     }
 
-    Tile getTile()
-    {
+    Tile getTile() {
         return tile;
     }
 
-    int getId()
-    {
+    int getId() {
         return id;
     }
 
-    Image getImage()
-    {
+    Image getImage() {
         if (players.isEmpty())
             return image;
         else
             return players.element().getImage();
     }
 
-    Character getText()
-    {
+    Character getText() {
         if (players.isEmpty())
             return text;
         else
             return players.element().getText();
     }
 
-    int getWidth()
-    {
+    int getWidth() {
         return getImage().getWidth(null);
     }
 
-    int getHeight()
-    {
+    int getHeight() {
         return getImage().getHeight(null);
     }
 
-    boolean isAccessible()
-    {
+    boolean isAccessible() {
         return tile == Tile.EMPTY || tile == Tile.HEART;
     }
 
-    boolean isMarkable()
-    {
+    boolean isMarkable() {
         return tile == Tile.EMPTY || tile == Tile.HEART;
     }
 
-    Cell marked()
-    {
+    Cell marked() {
         if (!isMarkable())
             return this;
         if (isHeart())
@@ -82,26 +71,26 @@ class Cell
             return new Cell(Tile.MARKED, id);
     }
 
-    public boolean isHeart()
-    {
+    public boolean isHeart() {
         return tile == Tile.HEART;
     }
 
-    void add(Player player)
-    {
+    void add(Player player) {
         if (isAccessible())
             players.add(player);
     }
 
-    void remove(Player player)
-    {
+    void remove(Player player) {
         if (isAccessible())
             players.remove(player);
     }
 
     // return a copy of the players list
-    Player[] getPlayers()
-    {
+    Player[] getPlayers() {
+        if (players.size() > 1) {
+
+            System.out.println(players.size());
+        }
         return players.toArray(new Player[0]);
     }
 }
