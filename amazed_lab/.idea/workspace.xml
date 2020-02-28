@@ -2,27 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9be848ce-ccd2-4b56-809c-c1f681b4d858" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Amazed$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Amazed$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Amazed.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Amazed.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Board$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Board$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Board.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Board.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Cell.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Cell.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/CellButton.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/CellButton.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Direction.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Direction.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/ImageFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/ImageFactory.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Maze.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Maze.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/MazeFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/MazeFrame.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Player.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Player.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Position.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Position.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/maze/Tile.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/maze/Tile.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/solver/SequentialSolver.class" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/solver/SequentialSolver.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/amazed/solver/SequentialSolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/solver/SequentialSolver.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

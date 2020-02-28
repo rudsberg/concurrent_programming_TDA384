@@ -103,6 +103,11 @@ public class ForkJoinSolver
         while (!frontier.empty()) {
             // get the new node to process
             int current = frontier.pop();
+
+            if (allNeighboursVisited(current)) {
+                return null;
+            }
+
             // if current node has a goal
             if (maze.hasGoal(current)) {
                 // move player to goal
@@ -111,7 +116,7 @@ public class ForkJoinSolver
                 return pathFromTo(start, current);
             }
 
-            if (maze.neighbors(current).size() <= 1) {
+            if (notVisitedNeighbours(current) <= 1) {
                 // if current node has not been visited yet
                 if (!visited.contains(current)) {
                     // move player to current node
@@ -121,27 +126,52 @@ public class ForkJoinSolver
                     // for every node nb adjacent to current
                     for (int nb: maze.neighbors(current)) {
                         // add nb to the nodes to be processed
-                        frontier.push(nb);
-                        // if nb has not been already visited,
-                        // nb can be reached from current (i.e., current is nb's predecessor)
-                        if (!visited.contains(nb))
+                        if (!visited.contains(nb)) {
+                            frontier.push(nb);
                             predecessor.put(nb, current);
+                        }
                     }
                 }
             } else {
-                List<ForkJoinSolver> tasks = new ArrayList<>();
+                List<ForkJoinSolver> subtasks = new ArrayList<>();
+
                 for (int neighbor : maze.neighbors(current)) {
-                    tasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
+                    subtasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
                 }
 
+                for (ForkJoinSolver task: subtasks) {
+                    task.fork();
+                }
 
-                invokeAll(tasks);
+                for(ForkJoinSolver subtask : subtasks) {
+                    List<Integer> path = subtask.join();
+                    if (path != null) {
+                        return path;
+                    }
+                }
+
             }
-
 
         }
         // all nodes explored, no goal found
         return null;
+    }
+
+    private boolean allNeighboursVisited(int current) {
+        for (int neighbor: maze.neighbors(current)) {
+            if (!visited.contains(neighbor))
+                return false;
+        }
+        return true;
+    }
+
+    private int notVisitedNeighbours(int current) {
+        int count = 0;
+        for (int neighbor: maze.neighbors(current)) {
+            if (!visited.contains(neighbor))
+                count++;
+        }
+        return count;
     }
 
     protected List<Integer> pathFromTo(int from, int to) {
