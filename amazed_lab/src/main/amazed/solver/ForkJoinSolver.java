@@ -19,16 +19,14 @@ import java.util.concurrent.ForkJoinTask;
 
 
 public class ForkJoinSolver
-    extends SequentialSolver
-{
+        extends SequentialSolver {
     /**
      * Creates a solver that searches in <code>maze</code> from the
      * start node to a goal.
      *
-     * @param maze   the maze to be searched
+     * @param maze the maze to be searched
      */
-    public ForkJoinSolver(Maze maze)
-    {
+    public ForkJoinSolver(Maze maze) {
         super(maze);
     }
 
@@ -37,23 +35,25 @@ public class ForkJoinSolver
      * start node to a goal, forking after a given number of visited
      * nodes.
      *
-     * @param maze        the maze to be searched
-     * @param forkAfter   the number of steps (visited nodes) after
-     *                    which a parallel task is forked; if
-     *                    <code>forkAfter &lt;= 0</code> the solver never
-     *                    forks new tasks
+     * @param maze      the maze to be searched
+     * @param forkAfter the number of steps (visited nodes) after
+     *                  which a parallel task is forked; if
+     *                  <code>forkAfter &lt;= 0</code> the solver never
+     *                  forks new tasks
      */
-    public ForkJoinSolver(Maze maze, int forkAfter)
-    {
+    public ForkJoinSolver(Maze maze, int forkAfter) {
         this(maze);
         this.forkAfter = forkAfter;
     }
+
+    private int initgoal;
 
     private ForkJoinSolver(Maze maze, int start, ConcurrentSkipListSet<Integer> visited, ConcurrentMap<Integer, Integer> predecessor) {
         this(maze);
         super.start = start;
         super.visited = visited;
         super.predecessor = predecessor;
+        initgoal = maze.start();
     }
 
     /**
@@ -63,38 +63,35 @@ public class ForkJoinSolver
      * goals, or all goals are unreacheable), the method returns
      * <code>null</code>.
      *
-     * @return   the list of node identifiers from the start node to a
-     *           goal node in the maze; <code>null</code> if such a path cannot
-     *           be found.
+     * @return the list of node identifiers from the start node to a
+     * goal node in the maze; <code>null</code> if such a path cannot
+     * be found.
      */
     @Override
-    public List<Integer> compute()
-    {
+    public List<Integer> compute() {
         return parallelSearch();
     }
 
     /**
      * - you will fork new threads, and each thread will continue the search in a different part of the maze in parallel to the others.
      * Fork när det finns mer än en granne *som är ej besökt*. Testa N forks för N grannar om det är mer än 1 granne (kanske N-1, för huvudtråd).
-     *
+     * <p>
      * - what state has to be shared among parallel threads (visited, a stack frontier, and a map predecessor)
      * visited     --> trådsäker
      * frontier    --> borde kunna vara lokal. Checka mot visited, så fort man går till en granne, lägg då till in visited.
      * predecessor --> trådsäker (flera trådar kan lägga till samtidigt)
-     *
+     * <p>
      * - use thread safe version of shared data structures
-     *
+     * <p>
      * - modify seq with paralell solution
-     *
+     * <p>
      * ------------
-     *
+     * <p>
      * ForkJoinPool ansvarar för alla workers, ForkJoinTasks, vars konkreta klass RecursiveTask har returvärde.
      * ForkJoinTasks compute kör arbetet.
-     *
      */
 
-    private List<Integer> parallelSearch()
-    {
+    private List<Integer> parallelSearch() {
         // one player active on the maze at start
         int player = maze.newPlayer(start);
         // start with start node
@@ -113,7 +110,14 @@ public class ForkJoinSolver
                 // move player to goal
                 maze.move(player, current);
                 // search finished: reconstruct and return path
-                return pathFromTo(start, current);
+                System.out.println("I MÅL");
+                System.out.println(predecessor.size());
+                List<Integer> test = pathFromTo(maze.start(), current);
+
+                if (test == null) {
+                    System.out.println("PATH IS NULL");
+                }
+                return test;
             }
 
             if (notVisitedNeighbours(current) <= 1) {
@@ -124,7 +128,7 @@ public class ForkJoinSolver
                     // mark node as visited
                     visited.add(current);
                     // for every node nb adjacent to current
-                    for (int nb: maze.neighbors(current)) {
+                    for (int nb : maze.neighbors(current)) {
                         // add nb to the nodes to be processed
                         if (!visited.contains(nb)) {
                             frontier.push(nb);
@@ -133,17 +137,25 @@ public class ForkJoinSolver
                     }
                 }
             } else {
+                maze.move(player, current);
+                visited.add(current);
+
                 List<ForkJoinSolver> subtasks = new ArrayList<>();
 
                 for (int neighbor : maze.neighbors(current)) {
-                    subtasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
-                }
+                        if (!visited.contains(neighbor)) {
+                            predecessor.put(neighbor, current);
+                            subtasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
 
-                for (ForkJoinSolver task: subtasks) {
+                        }
+                    }
+
+
+                for (ForkJoinSolver task : subtasks) {
                     task.fork();
                 }
 
-                for(ForkJoinSolver subtask : subtasks) {
+                for (ForkJoinSolver subtask : subtasks) {
                     List<Integer> path = subtask.join();
                     if (path != null) {
                         return path;
@@ -158,7 +170,7 @@ public class ForkJoinSolver
     }
 
     private boolean allNeighboursVisited(int current) {
-        for (int neighbor: maze.neighbors(current)) {
+        for (int neighbor : maze.neighbors(current)) {
             if (!visited.contains(neighbor))
                 return false;
         }
@@ -167,7 +179,7 @@ public class ForkJoinSolver
 
     private int notVisitedNeighbours(int current) {
         int count = 0;
-        for (int neighbor: maze.neighbors(current)) {
+        for (int neighbor : maze.neighbors(current)) {
             if (!visited.contains(neighbor))
                 count++;
         }
@@ -180,11 +192,17 @@ public class ForkJoinSolver
         while (current != from) {
             path.add(current);
             current = predecessor.get(current);
-            if (current == null)
+            System.out.println(current);
+            if (current == null) {
+                //     System.out.println("CURRENT IS NULL(current comes here : " + current + ")");
+                //    System.out.println("CURRENT IS NULL(current comes here : " + current + ")");
+
                 return null;
+            }
         }
         path.add(from);
         Collections.reverse(path);
+        System.out.println("path is = " + path);
         return path;
     }
 }
