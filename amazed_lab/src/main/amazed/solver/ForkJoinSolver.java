@@ -2,12 +2,11 @@ package amazed.solver;
 
 import amazed.maze.Maze;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 /**
  * <code>ForkJoinSolver</code> implements a solver for
@@ -50,6 +49,13 @@ public class ForkJoinSolver
         this.forkAfter = forkAfter;
     }
 
+    private ForkJoinSolver(Maze maze, int start, ConcurrentSkipListSet<Integer> visited, ConcurrentMap<Integer, Integer> predecessor) {
+        this(maze);
+        super.start = start;
+        super.visited = visited;
+        super.predecessor = predecessor;
+    }
+
     /**
      * Searches for and returns the path, as a list of node
      * identifiers, that goes from the start node to a goal node in
@@ -67,8 +73,88 @@ public class ForkJoinSolver
         return parallelSearch();
     }
 
+    /**
+     * - you will fork new threads, and each thread will continue the search in a different part of the maze in parallel to the others.
+     * Fork när det finns mer än en granne *som är ej besökt*. Testa N forks för N grannar om det är mer än 1 granne (kanske N-1, för huvudtråd).
+     *
+     * - what state has to be shared among parallel threads (visited, a stack frontier, and a map predecessor)
+     * visited     --> trådsäker
+     * frontier    --> borde kunna vara lokal. Checka mot visited, så fort man går till en granne, lägg då till in visited.
+     * predecessor --> trådsäker (flera trådar kan lägga till samtidigt)
+     *
+     * - use thread safe version of shared data structures
+     *
+     * - modify seq with paralell solution
+     *
+     * ------------
+     *
+     * ForkJoinPool ansvarar för alla workers, ForkJoinTasks, vars konkreta klass RecursiveTask har returvärde.
+     * ForkJoinTasks compute kör arbetet.
+     *
+     */
+
     private List<Integer> parallelSearch()
     {
+        // one player active on the maze at start
+        int player = maze.newPlayer(start);
+        // start with start node
+        frontier.push(start);
+        // as long as not all nodes have been processed
+        while (!frontier.empty()) {
+            // get the new node to process
+            int current = frontier.pop();
+            // if current node has a goal
+            if (maze.hasGoal(current)) {
+                // move player to goal
+                maze.move(player, current);
+                // search finished: reconstruct and return path
+                return pathFromTo(start, current);
+            }
+
+            if (maze.neighbors(current).size() <= 1) {
+                // if current node has not been visited yet
+                if (!visited.contains(current)) {
+                    // move player to current node
+                    maze.move(player, current);
+                    // mark node as visited
+                    visited.add(current);
+                    // for every node nb adjacent to current
+                    for (int nb: maze.neighbors(current)) {
+                        // add nb to the nodes to be processed
+                        frontier.push(nb);
+                        // if nb has not been already visited,
+                        // nb can be reached from current (i.e., current is nb's predecessor)
+                        if (!visited.contains(nb))
+                            predecessor.put(nb, current);
+                    }
+                }
+            } else {
+                List<ForkJoinSolver> tasks = new ArrayList<>();
+                for (int neighbor : maze.neighbors(current)) {
+                    tasks.add(new ForkJoinSolver(maze, neighbor, visited, predecessor));
+                }
+
+
+                invokeAll(tasks);
+            }
+
+
+        }
+        // all nodes explored, no goal found
         return null;
+    }
+
+    protected List<Integer> pathFromTo(int from, int to) {
+        List<Integer> path = new LinkedList<>();
+        Integer current = to;
+        while (current != from) {
+            path.add(current);
+            current = predecessor.get(current);
+            if (current == null)
+                return null;
+        }
+        path.add(from);
+        Collections.reverse(path);
+        return path;
     }
 }

@@ -2,6 +2,9 @@ package amazed.solver;
 
 import amazed.maze.Maze;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RecursiveTask;
 
 import java.util.List;
@@ -58,8 +61,8 @@ public class SequentialSolver
      */
     protected void initStructures()
     {
-        visited = new HashSet<>();
-        predecessor = new HashMap<>();
+        visited = new ConcurrentSkipListSet<>();
+        predecessor = new ConcurrentHashMap<>();
         frontier = new Stack<>();
     }
 
@@ -79,14 +82,15 @@ public class SequentialSolver
      * Set of identifiers of all nodes visited so far during the
      * search.
      */
-    protected Set<Integer> visited;
+    protected ConcurrentSkipListSet<Integer> visited;
+
     /**
      * If <code>(m -&gt; n)</code> is in <code>precedessor</code>, then
      * the node with identifier <code>n</code> has been first visited
      * from its neighbor node with identifier <code>m</code> during
      * the search.
      */
-    protected Map<Integer, Integer> predecessor;
+    protected ConcurrentMap<Integer, Integer> predecessor;
     /**
      * The nodes in the maze to be visited next. Using a stack
      * implements a search that goes depth first..
