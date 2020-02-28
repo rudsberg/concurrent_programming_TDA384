@@ -90,8 +90,8 @@ public class ForkJoinSolver
      * ForkJoinPool ansvarar för alla workers, ForkJoinTasks, vars konkreta klass RecursiveTask har returvärde.
      * ForkJoinTasks compute kör arbetet.
      */
-
     private List<Integer> parallelSearch() {
+
         // one player active on the maze at start
         int player = maze.newPlayer(start);
         // start with start node
@@ -101,17 +101,14 @@ public class ForkJoinSolver
             // get the new node to process
             int current = frontier.pop();
 
-            if (allNeighboursVisited(current)) {
-                return null;
-            }
 
             // if current node has a goal
             if (maze.hasGoal(current)) {
                 // move player to goal
-                maze.move(player, current);
+                tryToMove(player,current);
+
                 // search finished: reconstruct and return path
-                System.out.println("I MÅL");
-                System.out.println(predecessor.size());
+
                 List<Integer> test = pathFromTo(maze.start(), current);
 
                 if (test == null) {
@@ -119,14 +116,16 @@ public class ForkJoinSolver
                 }
                 return test;
             }
+            if (allNeighboursVisited(current)) {
+                tryToMove(player,current);
+                return null;
+            }
+
 
             if (notVisitedNeighbours(current) <= 1) {
                 // if current node has not been visited yet
                 if (!visited.contains(current)) {
-                    // move player to current node
-                    maze.move(player, current);
-                    // mark node as visited
-                    visited.add(current);
+                tryToMove(player,current);
                     // for every node nb adjacent to current
                     for (int nb : maze.neighbors(current)) {
                         // add nb to the nodes to be processed
@@ -137,11 +136,8 @@ public class ForkJoinSolver
                     }
                 }
             } else {
-                maze.move(player, current);
-                visited.add(current);
-
+                tryToMove(player,current);
                 List<ForkJoinSolver> subtasks = new ArrayList<>();
-
                 for (int neighbor : maze.neighbors(current)) {
                         if (!visited.contains(neighbor)) {
                             predecessor.put(neighbor, current);
@@ -204,5 +200,12 @@ public class ForkJoinSolver
         Collections.reverse(path);
         System.out.println("path is = " + path);
         return path;
+    }
+
+    private void tryToMove(int player,int current){
+        if(!visited.contains(current)){
+            visited.add(current);
+            maze.move(player,current);
+        }
     }
 }
