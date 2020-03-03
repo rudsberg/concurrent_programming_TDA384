@@ -4,9 +4,24 @@
     <list default="true" id="9be848ce-ccd2-4b56-809c-c1f681b4d858" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Amazed$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Amazed$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Amazed.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Amazed.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Board$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Board$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Board.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Board.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Cell.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Cell.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/CellButton.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/CellButton.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Direction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Direction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/ImageFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/ImageFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Maze.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Maze.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/MazeFrame.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/MazeFrame.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Player.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Player.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Position.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Position.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Tile.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/maze/Tile.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/solver/ForkJoinSolver.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/solver/ForkJoinSolver.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/amazed_lab/amazed/solver/SequentialSolver.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/amazed_lab/amazed/solver/SequentialSolver.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/amazed/solver/ForkJoinSolver.java" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,6 +36,11 @@
   </component>
   <component name="ProjectId" id="1YQS1vREHQlV5DDAhtcWM8o0pgc" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -37,18 +57,6 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="restartRequiresConfirmation" value="false" />
   </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
-  </component>
   <component name="RunManager">
     <configuration default="true" type="Applet">
       <option name="HEIGHT" value="0" />
@@ -61,7 +69,7 @@
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="amazed.Main" />
       <module name="amazed_lab" />
-      <option name="PROGRAM_PARAMETERS" value="&quot;C:\Users\isak_\Skola\Chalmers\TDA384 - Para\concurrent_programming_TDA384\amazed_lab\maps\medium.map&quot; &quot;parallel-9" />
+      <option name="PROGRAM_PARAMETERS" value="&quot;C:\Users\isak_\OneDrive\Dokument\Programmering\Parallel\concurrent_programming_TDA384\amazed_lab\maps\medium.map&quot; &quot;parallel-9" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="amazed.*" />
@@ -140,6 +148,40 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583223778240">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583223778240" />
+    <state x="808" y="409" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog" timestamp="1583223713553">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="808" y="409" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583223713553" />
+    <state width="1877" height="86" key="GridCell.Tab.0.bottom" timestamp="1583225377562">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="86" key="GridCell.Tab.0.bottom/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583225377562" />
+    <state width="1877" height="86" key="GridCell.Tab.0.center" timestamp="1583225377561">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="86" key="GridCell.Tab.0.center/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583225377561" />
+    <state width="1877" height="86" key="GridCell.Tab.0.left" timestamp="1583225377561">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="86" key="GridCell.Tab.0.left/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583225377561" />
+    <state width="1877" height="86" key="GridCell.Tab.0.right" timestamp="1583225377562">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="86" key="GridCell.Tab.0.right/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583225377562" />
+    <state x="440" y="94" key="SettingsEditor" timestamp="1583223744068">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="440" y="94" key="SettingsEditor/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583223744068" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1583224206947">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/1920.65.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1583224206947" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
