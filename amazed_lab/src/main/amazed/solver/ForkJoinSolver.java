@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <code>ForkJoinSolver</code> implements a solver for
@@ -28,14 +29,9 @@ public class ForkJoinSolver
     public ForkJoinSolver(Maze maze) {
         super(maze);
     }
-    public static boolean isFinished = false;
-    private static ConcurrentSkipListSet<Integer> visited = new ConcurrentSkipListSet<>();
-    private static ConcurrentMap<Integer, Integer> predecessor = new ConcurrentHashMap<>();
-    public static Integer counter = 0;
 
-    public synchronized static void incCounter() {
-        counter++;
-    }
+    private static volatile AtomicBoolean isFinished = new AtomicBoolean();
+
 
 
     /**
@@ -61,10 +57,7 @@ public class ForkJoinSolver
         super.predecessor = predecessor;
     }
 
-    private ForkJoinSolver(int start,Maze maze) {
-        this(maze);
-        super.start = start;
-    }
+
 
     /**
      * Searches for and returns the path, as a list of node
@@ -84,44 +77,48 @@ public class ForkJoinSolver
 
     private List<Integer> parallelSearch() {
         // one player active on the maze at start
-        // start with start node
+        // start with node given by constructor as 'start'.
+        //'testandgrab' add start to visited.
         frontier.push(start);
         if (!visited.add(start)) {
             return null;
         }
+        //we create a new player only if we succeeded in adding the start node to visited, this ensures that we don't spawn multiple players in the same cell.
         int player = maze.newPlayer(start);
-        boolean firstRun =true;
-        // as long as not all nodes have been processed
-        while (!frontier.empty() && !isFinished) {
+        boolean firstRun = true;
+        // as long as not all nodes have been processed nor the goal has been reached by some fork.
+
+
+        while (!frontier.empty() && !isFinished.get()) {
             int current = frontier.pop();
-            //Moves and adds to visited.
+            //This is used for runs subsequent to the first run.
+            //Also 'testandgrab'-adds current to visited, if it fails we proceed with the next node in frontier.
             if (!visited.add(current) && !firstRun) {
                 continue;
-            }else if (firstRun){
+            } else if (firstRun) {
                 firstRun = false;
             }
-
+            //Actually moves the player graphically.
             maze.move(player, current);
 
             // if current node has a goal
             if (maze.hasGoal(current)) {
+                //set isFínished to true to tell all other threads to stop searching.
+                isFinished.set(true);
                 // search finished: reconstruct and return path
-                isFinished = true;
                 return pathFromTo(maze.start(), current);
             }
 
             // If all neighbours are visited, e.g. when player reaches a dead end,
-            // try to move if it has not been visited before and return null
-            // because this path does not lead to goal and therefore should be discarded.
+            // this path does not lead to goal and therefore should be discarded.
             if (allNeighboursVisited(current)) {
                 return null;
             }
 
             // In case of only one possible path, do not spawn any new players, instead
             // let the current process deal with it.
-            if (notVisitedNeighbours(current) < 1) {
+            if (notVisitedNeighbours(current) <= 1) {
                 // Only consider node if it has not been visited before
-
                 // for every node nb adjacent to current
                 for (int nb : maze.neighbors(current)) {
                     // add nb to the nodes to be processed
@@ -137,7 +134,7 @@ public class ForkJoinSolver
                 for (int nb : maze.neighbors(current)) {
                     if (notInFrontierOrVisited(nb)) {
                         predecessor.put(nb, current);
-                        subtasks.add(new ForkJoinSolver(nb, maze));
+                        subtasks.add(new ForkJoinSolver(maze,nb,visited,predecessor));
                     }
                 }
 
@@ -201,9 +198,6 @@ public class ForkJoinSolver
      * Adds to visited and moves player on the maze if it has not been previously visited.
      */
     private void move(int player, int current) {
-        if (visited.contains(current)) {
-            incCounter();
-        }
         visited.add(current);
         maze.move(player, current);
     }
