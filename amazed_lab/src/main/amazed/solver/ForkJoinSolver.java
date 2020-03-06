@@ -92,18 +92,18 @@ public class ForkJoinSolver
         while (!frontier.empty() && !isFinished.get()) {
             int current = frontier.pop();
             //This is used for runs subsequent to the first run.
-            //Also 'testandgrab'-adds current to visited, if it fails we proceed with the next node in frontier.
+            //Also adds current to visited, if it fails we proceed with the next node in frontier.
             if (!visited.add(current) && !firstRun) {
                 continue;
             } else if (firstRun) {
                 firstRun = false;
             }
-            //Actually moves the player graphically.
+            //Moves the player graphically.
             maze.move(player, current);
 
             // if current node has a goal
             if (maze.hasGoal(current)) {
-                //set isFínished to true to tell all other threads to stop searching.
+                //set isFinished to true to tell all other threads to stop searching.
                 isFinished.set(true);
                 // search finished: reconstruct and return path
                 return pathFromTo(maze.start(), current);
